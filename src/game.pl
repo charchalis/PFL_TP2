@@ -36,7 +36,8 @@ main_menu(GameConfig) :-
 handle_main_menu(1, GameConfig):-
     write('Starting game...'), nl,
     initial_state(GameConfig, GameState),
-    write(GameState).
+    write(GameState),
+    display_game(GameState).
 
 handle_main_menu(2, GameConfig):-
     game_type_menu(GameConfig).
@@ -111,7 +112,14 @@ initial_state(game_config(GameType, Difficulty, Size), GameState) :-
     CapturedPieces = [],
     PiecesToPlay = [],
     % Construct the game state
-    GameState = game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty).
+    GameState = game_state(
+        Board,
+        CurrentPlayer,
+        CapturedPieces,
+        PiecesToPlay,
+        GameType,
+        Difficulty
+    ).
 
 % Create an empty board
 create_empty_board(Size, Board) :-
@@ -137,9 +145,90 @@ create_empty_rows(Size, Row, [Row | RestRows]) :-
 
 
 
+%%%%%%%%%%% DISPLAY %%%%%%%%%%%
+
+
+% Display the game state
+display_game(game_state(Board, CurrentPlayer, _, _, _, _)) :-
+    nl,
+    write('Current Player: '), write(CurrentPlayer), nl, nl,
+    display_board(Board),
+    nl.
+
+% Display the board with coordinates
+display_board(Board) :-
+    length(Board, Size),
+    display_rows(Board, Size),
+    display_column_headers(Size).
+
+% Display column headers (1, 2, 3, ...)
+display_column_headers(Size) :-
+    Padding = '      ',
+    write(Padding),
+    display_column_headers_limiter(Size),nl,
+    write(Padding),  % Padding for row numbers
+    numlist(1, Size, Columns),  % Use the custom numlist
+    maplist(format_column_header, Columns),
+    nl.
+
+display_column_headers_limiter(0).
+display_column_headers_limiter(Size):-
+    Size > 0,
+    write('---'),
+    NewSize is Size - 1,
+    display_column_headers_limiter(NewSize).
+
+% Format a single column header
+format_column_header(Column) :-
+    format(' ~w ', [Column]).
+
+% Format a single column header
+format_column_header(Column) :-
+    format(' ~w ', [Column]).
+
+% Display each row
+display_rows([], _).
+display_rows([Row | Rest], RowIndex) :-
+    format('~2|~w | ', [RowIndex]),  % Write the row number with padding
+    display_row(Row),
+    nl,
+    NewRowIndex is RowIndex - 1,
+    display_rows(Rest, NewRowIndex).
+
+% Display a single row
+display_row([]).
+display_row([Cell | Rest]) :-
+    (Cell = empty -> Symbol = '.' ; Symbol = Cell),  % Use '.' for empty cells
+    format(' ~w ', [Symbol]),
+    display_row(Rest).
+
+
+%for fidsplay column header function
+% Equivalent of numlist(Start, End, List)
+numlist(Start, End, List) :-
+    Start =< End,
+    numlist_helper(Start, End, List).
+
+% Helper predicate to recursively build the list
+numlist_helper(Current, End, [Current | Rest]) :-
+    Current =< End,
+    Next is Current + 1,
+    numlist_helper(Next, End, Rest).
+numlist_helper(Current, End, []) :-
+    Current > End.
+
+% Apply a predicate to every element in a list
+maplist(_, []).
+maplist(Predicate, [Head | Tail]) :-
+    call(Predicate, Head),
+    maplist(Predicate, Tail).
+
+
+
+
+
 %%%%%%%%%%% TODO: %%%%%%%%%%%
 
-display_game(GameState).
 
 move(GameState, Move, NewGameState).
 
