@@ -3,7 +3,6 @@
 play :-
     welcome,
     DefaultConfig = game_config(human_vs_computer, easy, small),
-    write('popo'),
     main_menu(DefaultConfig).
 
 welcome :-
@@ -19,6 +18,10 @@ reload :-
 
 
 
+
+%%%%%%%%%%% menus %%%%%%%%%%%
+
+
 main_menu(GameConfig) :-
     GameConfig = game_config(GameType, Difficulty, Size),
     write('1. start ( '), write(GameType), write(' | '), write(Difficulty), write(' | '), write(Size), write(' board )'), nl,
@@ -32,7 +35,8 @@ main_menu(GameConfig) :-
 
 handle_main_menu(1, GameConfig):-
     write('Starting game...'), nl,
-    initial_state(GameConfig, GameState).
+    initial_state(GameConfig, GameState),
+    write(GameState).
 
 handle_main_menu(2, GameConfig):-
     game_type_menu(GameConfig).
@@ -87,7 +91,53 @@ size_menu(game_config(GameType, Difficulty, _)) :-
 handle_size_menu(1, small).
 handle_size_menu(2, big).
 
-initial_state(GameConfig, GameState).
+
+
+
+
+
+
+
+%%%%%%%%%%% initial state %%%%%%%%%%%
+
+
+initial_state(game_config(GameType, Difficulty, Size), GameState) :-
+    % Create an empty board
+    (Size = small -> BoardSize = 6 ; BoardSize = 8),
+    create_empty_board(BoardSize, Board),
+    % Define the current player as player1
+    CurrentPlayer = player1,
+    % Initialize captured pieces and pieces yet to be played
+    CapturedPieces = [],
+    PiecesToPlay = [],
+    % Construct the game state
+    GameState = game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty).
+
+% Create an empty board
+create_empty_board(Size, Board) :-
+    create_empty_row(Size, Row),
+    create_empty_rows(Size, Row, Board).
+
+% Create an empty row of a given size
+create_empty_row(Size, Row) :-
+    length(Row, Size),
+    fill_with_empty(Row).
+
+% Fill a list with the atom `empty`
+fill_with_empty([]).
+fill_with_empty([1 | Rest]) :-
+    fill_with_empty(Rest).
+
+% Create multiple rows of the same type
+create_empty_rows(0, _, []).
+create_empty_rows(Size, Row, [Row | RestRows]) :-
+    Size > 0,
+    NewSize is Size - 1,
+    create_empty_rows(NewSize, Row, RestRows).
+
+
+
+%%%%%%%%%%% TODO: %%%%%%%%%%%
 
 display_game(GameState).
 
