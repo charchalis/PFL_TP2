@@ -1,0 +1,1 @@
+anaash prolog sicstus
