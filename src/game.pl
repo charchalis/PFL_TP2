@@ -55,7 +55,7 @@ handle_main_menu(5, GameConfig):-
     halt.
 
 
-game_type_menu(game_config(_, Difficulty, _)) :-
+game_type_menu(game_config(_, Difficulty, Size)) :-
     write('1. Human vs Human (H/H)'), nl,
     write('2. Human vs Computer (H/PC)'), nl,
     write('3. Computer vs Human (PC/H)'), nl,
