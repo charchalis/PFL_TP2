@@ -171,11 +171,11 @@ display_game(game_state(Board, CurrentPlayer, _, _, _, _)) :-
 
 % Display the board with coordinates
 display_board(Board) :-
-    write('rere'),nl,nl,
+    %write('rere'),nl,nl,
     length(Board, Size),
-    write('rere'),nl,nl,
+    %write('rere'),nl,nl,
     display_rows(Board, Size),
-    write('rere'),nl,nl,
+    %write('rere'),nl,nl,
     display_column_headers(Size).
 
 % Display column headers (1, 2, 3, ...)
@@ -206,13 +206,13 @@ format_column_header(Column) :-
 % Display each row
 display_rows([], _).
 display_rows([Row | Rest], RowIndex) :-
-    write('display rowssss'),nl,nl,
-    write(Row),nl,
-    write(RowIndex), nl,
+    %write('display rowssss'),nl,nl,
+    %write(Row),nl,
+    %write(RowIndex), nl,
     format('~2|~w | ', [RowIndex]),  % Write the row number with padding
-    write('display rows'),nl,nl,
+    %write('display rows'),nl,nl,
     display_row(Row),
-    write('display rows'),nl,nl,
+    %write('display rows'),nl,nl,
     nl,
     NewRowIndex is RowIndex - 1,
     display_rows(Rest, NewRowIndex).
