@@ -105,7 +105,7 @@ handle_size_menu(2, big).
 initial_state(game_config(GameType, Difficulty, Size), GameState) :-
     % Create an empty board
     (Size = small -> BoardSize = 6 ; BoardSize = 8),
-    create_empty_board(BoardSize, Board),
+    generate_board(BoardSize, Board),
     % Define the current player as player1
     CurrentPlayer = player1,
     % Initialize captured pieces and pieces yet to be played
@@ -121,27 +121,34 @@ initial_state(game_config(GameType, Difficulty, Size), GameState) :-
         Difficulty
     ).
 
-% Create an empty board
-create_empty_board(Size, Board) :-
-    create_empty_row(Size, Row),
-    create_empty_rows(Size, Row, Board).
+% Generate the entire board with intercalated pieces
+generate_board(Size, Board) :-
+    generate_board_rows(Size, 1, Size, Board).
 
-% Create an empty row of a given size
-create_empty_row(Size, Row) :-
+% Generate rows with alternating starting players
+generate_board_rows(0, _, _, []).
+generate_board_rows(RemainingRows, StartPlayerIndex, Size, [Row | RestRows]) :-
+    RemainingRows > 0,
+    generate_board_row(StartPlayerIndex, Size, Row),
+    NextPlayerIndex is 3 - StartPlayerIndex, % Alternate between 1 and 2
+    NewRemainingRows is RemainingRows - 1,
+    generate_board_rows(NewRemainingRows, NextPlayerIndex, Size, RestRows).
+
+% Generate a single row
+generate_board_row(StartPlayerIndex, Size, Row) :-
     length(Row, Size),
-    fill_with_empty(Row).
+    populate(StartPlayerIndex, Row).
 
-% Fill a list with the atom `empty`
-fill_with_empty([]).
-fill_with_empty([1 | Rest]) :-
-    fill_with_empty(Rest).
+% Populate a row with alternating pieces
+populate(_, []).
+populate(CurrentPlayerIndex, [(1, Player) | Rest]) :-
+    player_from_index(CurrentPlayerIndex, Player),
+    NextPlayerIndex is 3 - CurrentPlayerIndex, % Alternate between 1 and 2
+    populate(NextPlayerIndex, Rest).
 
-% Create multiple rows of the same type
-create_empty_rows(0, _, []).
-create_empty_rows(Size, Row, [Row | RestRows]) :-
-    Size > 0,
-    NewSize is Size - 1,
-    create_empty_rows(NewSize, Row, RestRows).
+% Map player indices to player terms
+player_from_index(1, player1).
+player_from_index(2, player2).
 
 
 
@@ -150,7 +157,7 @@ create_empty_rows(Size, Row, [Row | RestRows]) :-
 
 % Display the game state
 display_game(game_state(Board, CurrentPlayer, _, _, _, _)) :-
-    nl,
+    nl,nl,
     write('Current Player: '), write(CurrentPlayer), nl, nl,
     display_board(Board),
     nl.
@@ -197,10 +204,38 @@ display_rows([Row | Rest], RowIndex) :-
 
 % Display a single row
 display_row([]).
-display_row([Cell | Rest]) :-
-    (Cell = empty -> Symbol = '.' ; Symbol = Cell),  % Use '.' for empty cells
-    format(' ~w ', [Symbol]),
+display_row([empty | Rest]) :-
+    write(' . '), % Display empty cells as "."
     display_row(Rest).
+display_row([(Stack, Player) | Rest]) :-
+    write(' '),
+    display_cell(Stack, Player),
+    write(' '),
+    display_row(Rest).
+
+% Display a single cell with color
+display_cell(Stack, player1) :- write_colored_text(blue, Stack).
+display_cell(Stack, player2) :- write_colored_text(red, Stack).
+display_cell(empty) :- write('.').
+
+
+write_with_color(ColorCode, Text) :-
+    format('\e[~wm~w\e[0m', [ColorCode, Text]).
+% Define color codes
+color_code(black, 30).
+color_code(red, 31).
+color_code(green, 32).
+color_code(yellow, 33).
+color_code(blue, 34).
+color_code(magenta, 35).
+color_code(cyan, 36).
+color_code(white, 37).
+
+% Example usage
+write_colored_text(Color, Text) :-
+    color_code(Color, Code),
+    write_with_color(Code, Text).
+
 
 
 %for fidsplay column header function
@@ -222,8 +257,6 @@ maplist(_, []).
 maplist(Predicate, [Head | Tail]) :-
     call(Predicate, Head),
     maplist(Predicate, Tail).
-
-
 
 
 
