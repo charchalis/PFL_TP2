@@ -189,22 +189,22 @@ color_player(player2):-
 
 % Display the board with coordinates
 display_board(Board) :-
-    %write('rere'),nl,nl,
     length(Board, Size),
-    %write('rere'),nl,nl,
-    display_rows(Board, Size),
-    %write('rere'),nl,nl,
+    reverse(Board, ReversedBoard),  % Reversed the list to make it consistent with the display
+    write('  X'), nl,
+    display_rows(ReversedBoard, Size),
     display_column_headers(Size).
+
 
 % Display column headers (1, 2, 3, ...)
 display_column_headers(Size) :-
     Padding = '      ',
     write(Padding),
     display_column_headers_limiter(Size),nl,
-    write(Padding),  % Padding for row numbers
-    numlist(1, Size, Columns),  % Use the custom numlist
+    write(Padding),  
+    numlist(1, Size, Columns),  
     maplist(format_column_header, Columns),
-    nl.
+    write(' Y'), nl.  
 
 display_column_headers_limiter(0).
 display_column_headers_limiter(Size):-
@@ -221,13 +221,8 @@ format_column_header(Column) :-
 % Display each row
 display_rows([], _).
 display_rows([Row | Rest], RowIndex) :-
-    %write('display rowssss'),nl,nl,
-    %write(Row),nl,
-    %write(RowIndex), nl,
     format('~2|~w | ', [RowIndex]),  % Write the row number with padding
-    %write('display rows'),nl,nl,«
     display_row(Row),
-    %write('display rows'),nl,nl,
     nl,
     NewRowIndex is RowIndex - 1,
     display_rows(Rest, NewRowIndex).
@@ -360,16 +355,19 @@ switch_player(player2,player1).
 apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, CurrentPlayer, NewCapturedPieces) :-
 
     write('applying move'),nl,
+    format('Origin: (~w, ~w), Destination: (~w, ~w)', [OriginX, OriginY, DestinationX, DestinationY]), nl,
 
     % Extract the Origin Cell
     nth1(OriginX, Board, OriginRow),
     nth1(OriginY, OriginRow, OriginCell),
+    format('Origin Cell: ~w', [OriginCell]), nl,
 
     OriginCell = (OriginStack, _Owner),
     
     % Extract the Destination Cell
     nth1(DestinationX, Board, DestRow),
     nth1(DestinationY, DestRow, DestCell),
+    format('Destination Cell: ~w', [DestCell]), nl,
     
     % Handle stacking logic for the destination
     (
