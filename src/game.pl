@@ -452,7 +452,8 @@ valid_moves(GameState, ListOfMoves) :-
          DestinationY is Y + 1, Destination = (X, DestinationY);
          DestinationY is Y - 1, Destination = (X, DestinationY)),
         valid_move(Board, CurrentPlayer, (Origin, Destination))
-    ), ListOfMoves).
+    ), Moves),
+    sort(Moves, ListOfMoves).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
