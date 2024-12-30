@@ -22,6 +22,13 @@ reload :-
 
 
 
+
+game_cycle(GameState):-
+    display_game(GameState),
+    prompt_for_move(GameState, Move),
+    move(GameState, Move, NewGameState),
+    game_cycle(NewGameState).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -38,8 +45,7 @@ main_menu(GameConfig) :-
 handle_main_menu(1, GameConfig):-
     write('Starting game...'), nl,
     initial_state(GameConfig, GameState),
-    write(GameState),
-    display_game(GameState).
+    game_cycle(GameState).
 
 handle_main_menu(2, GameConfig):-
     game_type_menu(GameConfig).
@@ -170,9 +176,16 @@ player_from_index(2, player2).
 % Display the game state
 display_game(game_state(Board, CurrentPlayer, _, _, _, _)) :-
     nl,nl,
-    write('Current Player: '), write(CurrentPlayer), nl, nl,
+    write('Current Player: '),
+    color_player(CurrentPlayer),nl, nl,
     display_board(Board),
     nl.
+
+color_player(player1):-
+    write_colored_text(blue, player1).
+    
+color_player(player2):-
+    write_colored_text(red, player2).
 
 % Display the board with coordinates
 display_board(Board) :-
@@ -204,9 +217,6 @@ display_column_headers_limiter(Size):-
 format_column_header(Column) :-
     format(' ~w ', [Column]).
 
-% Format a single column header
-format_column_header(Column) :-
-    format(' ~w ', [Column]).
 
 % Display each row
 display_rows([], _).
@@ -215,7 +225,7 @@ display_rows([Row | Rest], RowIndex) :-
     %write(Row),nl,
     %write(RowIndex), nl,
     format('~2|~w | ', [RowIndex]),  % Write the row number with padding
-    %write('display rows'),nl,nl,
+    %write('display rows'),nl,nl,«
     display_row(Row),
     %write('display rows'),nl,nl,
     nl,
@@ -233,7 +243,7 @@ display_row([(Stack, Player) | Rest]) :-
 % Display a single cell with color
 display_cell(Stack, player1) :- write_colored_text(blue, Stack).
 display_cell(Stack, player2) :- write_colored_text(red, Stack).
-display_cell(empty) :- write('.').
+display_cell(0, _) :- write('.').
 
 
 write_with_color(ColorCode, Text) :-
@@ -285,22 +295,15 @@ move(GameState, Move, NewGameState) :-
     GameState = game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty),
     NewGameState = game_state(NewBoard, NextPlayer, NewCapturedPieces, PiecesToPlay, GameType, Difficulty),
 
-    valid_move(Board, CurrentPlayer, Move),
+    %valid_move(Board, CurrentPlayer, Move),
     apply_move(Board, Move, NewBoard, CurrentPlayer, NewCapturedPieces),
     switch_player(CurrentPlayer, NextPlayer).
-
-
-
-
 
 
 
 valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     Origin = (OriginX, OriginY),
     Destination = (DestinationX, DestinationY),
-    write('Origin: '), write(OriginX), write(','), write(OriginY), nl,
-    write('Destination: '), write(DestinationX), write(','), write(DestinationY), nl,
-
     % Ensure the move is orthogonal and one square away
     orthogonal_one_square(OriginX, OriginY, DestinationX, DestinationY),
     
@@ -314,13 +317,11 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationX, Board, DestRow), % Get the row at DestinationX
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
-    write('popo'),nl,nl,nl,
-
     % Validate the destination cell
     valid_destination(DestCell, CurrentPlayer, OriginStack),
 
     % If all validations pass, print confirmation
-    write('Valid move from '), write(Origin), write(' to '), write(Destination), nl.
+    write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
 
 
 
@@ -341,14 +342,8 @@ valid_destination((DestStack, DestOwner), CurrentPlayer, OriginStack) :-
         DestStack >= OriginStack
     ;
         % Enemy stack with lower value
-        write('popo'),nl,nl,nl,
         DestOwner \= CurrentPlayer,
-        write('poppppoooo'),nl,
-        write(DestStack),nl,
-        write('popo'),nl,nl,
-        write(OriginStack),nl,
-        DestStack =< OriginStack,
-        write('popo'),nl
+        DestStack =< OriginStack
     ),
     !.  % If either condition is true, destination is valid.
 
@@ -356,11 +351,86 @@ valid_destination(_, _, _) :-
     write('Invalid move: Destination square does not satisfy move rules.'), nl, fail.
 
 
-switch_player(Player1,Player2).
-switch_player(Player2,Player1).
+
+switch_player(player1,player2).
+switch_player(player2,player1).
 
 
 
+apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, CurrentPlayer, NewCapturedPieces) :-
+
+    write('applying move'),nl,
+
+    % Extract the Origin Cell
+    nth1(OriginX, Board, OriginRow),
+    nth1(OriginY, OriginRow, OriginCell),
+
+    OriginCell = (OriginStack, _Owner),
+    
+    % Extract the Destination Cell
+    nth1(DestinationX, Board, DestRow),
+    nth1(DestinationY, DestRow, DestCell),
+    
+    % Handle stacking logic for the destination
+    (
+        DestCell = (0,empty) ->
+            NewDestCell = (OriginStack, CurrentPlayer),
+            NewCapturedPieces = []
+        ;
+        DestCell = (DestStack, DestOwner),
+        (
+            DestOwner = CurrentPlayer ->
+                NewStack is OriginStack + DestStack,
+                NewDestCell = (NewStack, CurrentPlayer),
+                NewCapturedPieces = []
+            ;
+                NewCapturedPieces = [(DestStack, DestOwner)],
+                NewDestCell = (OriginStack, CurrentPlayer)
+        )
+    ),
+    
+    % Update the destination row
+    replace_cell(DestRow, DestinationY, NewDestCell, UpdatedDestRow),
+    replace_row(Board, DestinationX, UpdatedDestRow, TempBoard),
+    
+    % Remove the origin stack
+    replace_cell(OriginRow, OriginY, (0,empty), UpdatedOriginRow),
+    replace_row(TempBoard, OriginX, UpdatedOriginRow, NewBoard),
+    
+    write('move applied'),nl.
+
+% Replace a cell in a row
+replace_cell(Row, Index, NewCell, NewRow) :-
+    nth1(Index, Row, _OldCell, Rest),
+    nth1(Index, NewRow, NewCell, Rest).
+
+% Replace a row in a board
+replace_row(Board, Index, NewRow, NewBoard) :-
+    nth1(Index, Board, _OldRow, Rest),
+    nth1(Index, NewBoard, NewRow, Rest).
+
+
+
+
+% Prompt the human player for their move
+prompt_for_move(GameState, Move) :-
+    write('Enter your move as ((X1, Y1), (X2, Y2)): '), nl,
+    read(Input),
+    (validate_input(GameState, Input) -> Move = Input;
+     write('Invalid move. Please try again.'), nl,
+     prompt_for_move(GameState, Move)).
+
+validate_input(GameState, Input):-
+    GameState = game_state(
+        Board,
+        CurrentPlayer,
+        CapturedPieces,
+        PiecesToPlay,
+        GameType,
+        Difficulty
+    ),
+    Input = (Origin, Destination),
+    valid_move(Board, CurrentPlayer, (Origin, Destination)).
 
 
 
