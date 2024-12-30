@@ -277,116 +277,116 @@ numlist_helper(Current, End, []) :-
 
 % move(+GameState, +Move, -NewGameState)
 % Validates and executes a move, returning the updated game state.
-move(game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty),
-     Move,
-     game_state(NewBoard, NextPlayer, NewCapturedPieces, NewPiecesToPlay, GameType, Difficulty)) :-
-    write('move() triggered'),nl,
+% move(game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty),
+%      Move,
+%      game_state(NewBoard, NextPlayer, NewCapturedPieces, NewPiecesToPlay, GameType, Difficulty)) :-
+%     write('move() triggered'),nl,
     
-    % Validate the move
-    valid_move(Board, CurrentPlayer, Move),
-    write('its a valid move'),nl,
-    % Execute the move
-    execute_move(Board, Move, CurrentPlayer, CapturedPieces, NewBoard, NewCapturedPieces),
-    write('move() triggered'),nl,
-    % Switch to the next player
-    switch_player(CurrentPlayer, NextPlayer),
-    write('move() triggered'),nl,
-    % Update pieces yet to be played (if applicable)
-    update_pieces_to_play(PiecesToPlay, Move, NewPiecesToPlay),
-    write('move() triggered'),nl.
+%     % Validate the move
+%     valid_move(Board, CurrentPlayer, Move),
+%     write('its a valid move'),nl,
+%     % Execute the move
+%     execute_move(Board, Move, CurrentPlayer, CapturedPieces, NewBoard, NewCapturedPieces),
+%     write('move() triggered'),nl,
+%     % Switch to the next player
+%     switch_player(CurrentPlayer, NextPlayer),
+%     write('move() triggered'),nl,
+%     % Update pieces yet to be played (if applicable)
+%     update_pieces_to_play(PiecesToPlay, Move, NewPiecesToPlay),
+%     write('move() triggered'),nl.
 
-% valid_move(+Board, +Player, +Move)
-% Ensures that the move is valid according to game rules.
-valid_move(Board, Player, Move) :-
-    write('valid_move() triggered'),nl,
-    % Extract move details (example: Move = move(SourceRow, SourceCol, DestRow, DestCol))
-    Move = move(SourceRow, SourceCol, DestRow, DestCol),
+% % valid_move(+Board, +Player, +Move)
+% % Ensures that the move is valid according to game rules.
+% valid_move(Board, Player, Move) :-
+%     write('valid_move() triggered'),nl,
+%     % Extract move details (example: Move = move(SourceRow, SourceCol, DestRow, DestCol))
+%     Move = move(SourceRow, SourceCol, DestRow, DestCol),
     
-    write('source row'), nl,
+%     write('source row'), nl,
 
-    write(SourceRow),nl,
+%     write(SourceRow),nl,
 
-    % Ensure the source and destination are within bounds
-    within_bounds(Board, SourceRow, SourceCol),
-    write('popo'), nl,
-    within_bounds(Board, DestRow, DestCol),
-    write('popo'),nl,
+%     % Ensure the source and destination are within bounds
+%     within_bounds(Board, SourceRow, SourceCol),
+%     write('popo'), nl,
+%     within_bounds(Board, DestRow, DestCol),
+%     write('popo'),nl,
 
-    % abs(SourceRow - DestRow, RowDist),
-    % abs(SourceCol - DestCol, ColDist),
-    % write(RowDist),nl,
-    % write(ColDist),nl,
-    % write(SourceRow),nl,
-    % (RowDist = 1 , ColDist = 0) ; (RowDist = 0 , ColDist = 1),
+%     % abs(SourceRow - DestRow, RowDist),
+%     % abs(SourceCol - DestCol, ColDist),
+%     % write(RowDist),nl,
+%     % write(ColDist),nl,
+%     % write(SourceRow),nl,
+%     % (RowDist = 1 , ColDist = 0) ; (RowDist = 0 , ColDist = 1),
 
-    % Ensure the source cell belongs to the current player
-    nth1(SourceRow, Board, SourceRowList),
-    nth1(SourceCol, SourceRowList, (Stack, Player)),
-    % Ensure there is at least one piece to move
-    Stack > 0,
-    write('popo'),nl,
-    % Ensure the destination cell is valid
-    nth1(DestRow, Board, DestRowList),
-    write('popo'),nl,
-    nth1(DestCol, DestRowList, DestinationCell),
-    write('popoooooo'),nl,
-    valid_destination((Stack, Player), DestinationCell).
+%     % Ensure the source cell belongs to the current player
+%     nth1(SourceRow, Board, SourceRowList),
+%     nth1(SourceCol, SourceRowList, (Stack, Player)),
+%     % Ensure there is at least one piece to move
+%     Stack > 0,
+%     write('popo'),nl,
+%     % Ensure the destination cell is valid
+%     nth1(DestRow, Board, DestRowList),
+%     write('popo'),nl,
+%     nth1(DestCol, DestRowList, DestinationCell),
+%     write('popoooooo'),nl,
+%     valid_destination((Stack, Player), DestinationCell).
 
-abs(X, AbsX) :-
-    (X < 0 -> AbsX is -X ; AbsX is X).
+% abs(X, AbsX) :-
+%     (X < 0 -> AbsX is -X ; AbsX is X).
 
-% within_bounds(+Board, +Row, +Col)
-% Ensures the given row and column are within the board's bounds.
-within_bounds(Board, Row, Col) :-
-    length(Board, Size),
-    Row > 0, Row =< Size,
-    Col > 0, Col =< Size.
+% % within_bounds(+Board, +Row, +Col)
+% % Ensures the given row and column are within the board's bounds.
+% within_bounds(Board, Row, Col) :-
+%     length(Board, Size),
+%     Row > 0, Row =< Size,
+%     Col > 0, Col =< Size.
 
-% valid_destination(+Cell)
-% Checks if the destination cell is valid for a move.
-valid_destination((SourceStack, SourcePlayer), (DestinationStack, DestinationPlayer)):-
-    write('move:'),
-    write(SourcePlayer),write(' - '),write(SourceStack), nl,
-    write(' to '),nl,
-    write(DestinationPlayer),write(' - '),write(DestinationStack),nl,nl.
+% % valid_destination(+Cell)
+% % Checks if the destination cell is valid for a move.
+% valid_destination((SourceStack, SourcePlayer), (DestinationStack, DestinationPlayer)):-
+%     write('move:'),
+%     write(SourcePlayer),write(' - '),write(SourceStack), nl,
+%     write(' to '),nl,
+%     write(DestinationPlayer),write(' - '),write(DestinationStack),nl,nl.
 
-get_stack_at_coordinate(GameState, Row, Column, Stack) :-
-    GameState = game_state(Board, _, _, _, _, _),  % Extract the board from the GameState
-    nth1(Row, Board, RowList),                     % Get the RowList (the specific row)
-    nth1(Column, RowList, (Stack, _)).            % Get the stack at Column (Stack, Player)
+% get_stack_at_coordinate(GameState, Row, Column, Stack) :-
+%     GameState = game_state(Board, _, _, _, _, _),  % Extract the board from the GameState
+%     nth1(Row, Board, RowList),                     % Get the RowList (the specific row)
+%     nth1(Column, RowList, (Stack, _)).            % Get the stack at Column (Stack, Player)
 
-% execute_move(+Board, +Move, +Player, +CapturedPieces, -NewBoard, -NewCapturedPieces)
-% Executes the move and updates the board and captured pieces.
-execute_move(Board, move(SR, SC, DR, DC), Player, CapturedPieces, NewBoard, NewCapturedPieces) :-
-    % Update the source cell: reduce the stack size or set it to empty
-    update_cell(Board, SR, SC, (0,empty), TempBoard),
-    % Update the destination cell: place the piece there
-    update_cell(TempBoard, DR, DC, (1, Player), NewBoard),
-    % Update captured pieces (if applicable, depending on the game's capture rules)
-    update_captured_pieces(CapturedPieces, DR, DC, NewCapturedPieces).
+% % execute_move(+Board, +Move, +Player, +CapturedPieces, -NewBoard, -NewCapturedPieces)
+% % Executes the move and updates the board and captured pieces.
+% execute_move(Board, move(SR, SC, DR, DC), Player, CapturedPieces, NewBoard, NewCapturedPieces) :-
+%     % Update the source cell: reduce the stack size or set it to empty
+%     update_cell(Board, SR, SC, (0,empty), TempBoard),
+%     % Update the destination cell: place the piece there
+%     update_cell(TempBoard, DR, DC, (1, Player), NewBoard),
+%     % Update captured pieces (if applicable, depending on the game's capture rules)
+%     update_captured_pieces(CapturedPieces, DR, DC, NewCapturedPieces).
 
-% update_cell(+Board, +Row, +Col, +NewValue, -NewBoard)
-% Updates a specific cell in the board.
-update_cell(Board, Row, Col, NewValue, NewBoard) :-
-    nth1(Row, Board, RowList, RestRows),
-    nth1(Col, RowList, _, RestCols),
-    nth1(Col, NewRowList, NewValue, RestCols),
-    nth1(Row, NewBoard, NewRowList, RestRows).
+% % update_cell(+Board, +Row, +Col, +NewValue, -NewBoard)
+% % Updates a specific cell in the board.
+% update_cell(Board, Row, Col, NewValue, NewBoard) :-
+%     nth1(Row, Board, RowList, RestRows),
+%     nth1(Col, RowList, _, RestCols),
+%     nth1(Col, NewRowList, NewValue, RestCols),
+%     nth1(Row, NewBoard, NewRowList, RestRows).
 
-% update_captured_pieces(+CapturedPieces, +Row, +Col, -NewCapturedPieces)
-% Updates the list of captured pieces if a capture occurs (customize for specific capture rules).
-update_captured_pieces(CapturedPieces, Row, Col, NewCapturedPieces) :-
-    % Example: Add the captured piece's details to the list
-    append(CapturedPieces, [(Row, Col)], NewCapturedPieces).
+% % update_captured_pieces(+CapturedPieces, +Row, +Col, -NewCapturedPieces)
+% % Updates the list of captured pieces if a capture occurs (customize for specific capture rules).
+% update_captured_pieces(CapturedPieces, Row, Col, NewCapturedPieces) :-
+%     % Example: Add the captured piece's details to the list
+%     append(CapturedPieces, [(Row, Col)], NewCapturedPieces).
 
-% switch_player(+CurrentPlayer, -NextPlayer)
-% Switches the turn to the next player.
-switch_player(player1, player2).
-switch_player(player2, player1).
+% % switch_player(+CurrentPlayer, -NextPlayer)
+% % Switches the turn to the next player.
+% switch_player(player1, player2).
+% switch_player(player2, player1).
 
-% update_pieces_to_play(+PiecesToPlay, +Move, -NewPiecesToPlay)
-% Updates the list of pieces yet to be played (if applicable for the game rules).
-update_pieces_to_play(PiecesToPlay, _, PiecesToPlay).  % Placeholder, no changes made.
+% % update_pieces_to_play(+PiecesToPlay, +Move, -NewPiecesToPlay)
+% % Updates the list of pieces yet to be played (if applicable for the game rules).
+% update_pieces_to_play(PiecesToPlay, _, PiecesToPlay).  % Placeholder, no changes made.
 
 
 
