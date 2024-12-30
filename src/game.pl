@@ -280,7 +280,14 @@ numlist_helper(Current, End, []) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MOVE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-move(GameState, Move, NewGameState).
+move(GameState, Move, NewGameState) :-
+    
+    GameState = game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty),
+    NewGameState = game_state(NewBoard, NextPlayer, NewCapturedPieces, PiecesToPlay, GameType, Difficulty),
+
+    valid_move(Board, CurrentPlayer, Move),
+    apply_move(Board, Move, NewBoard, CurrentPlayer, NewCapturedPieces),
+    switch_player(CurrentPlayer, NextPlayer).
 
 
 
@@ -288,6 +295,69 @@ move(GameState, Move, NewGameState).
 
 
 
+valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
+    Origin = (OriginX, OriginY),
+    Destination = (DestinationX, DestinationY),
+    write('Origin: '), write(OriginX), write(','), write(OriginY), nl,
+    write('Destination: '), write(DestinationX), write(','), write(DestinationY), nl,
+
+    % Ensure the move is orthogonal and one square away
+    orthogonal_one_square(OriginX, OriginY, DestinationX, DestinationY),
+    
+    % Validate origin cell
+    nth1(OriginX, Board, Row),         % Get the row at OriginX
+    nth1(OriginY, Row, (OriginStack, Owner)), % Get the cell at OriginY
+    (Owner = CurrentPlayer -> true ; 
+        write('Invalid move: Not your piece.'), nl, fail),
+    
+    % Validate destination cell
+    nth1(DestinationX, Board, DestRow), % Get the row at DestinationX
+    nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
+
+    write('popo'),nl,nl,nl,
+
+    % Validate the destination cell
+    valid_destination(DestCell, CurrentPlayer, OriginStack),
+
+    % If all validations pass, print confirmation
+    write('Valid move from '), write(Origin), write(' to '), write(Destination), nl.
+
+
+
+
+orthogonal_one_square(OriginX, OriginY, DestinationX, DestinationY) :-
+    (DestinationX = OriginX, abs(DestinationY - OriginY) =:= 1) ;  % Horizontal move
+    (DestinationY = OriginY, abs(DestinationX - OriginX) =:= 1).  % Vertical move
+
+
+
+% valid_destination(+DestCell, +CurrentPlayer, +OriginStack)
+valid_destination(empty, _, _) :-
+    !.  % Destination is empty -> valid.
+
+valid_destination((DestStack, DestOwner), CurrentPlayer, OriginStack) :-
+    (   % Friendly stack with higher value
+        DestOwner = CurrentPlayer,
+        DestStack >= OriginStack
+    ;
+        % Enemy stack with lower value
+        write('popo'),nl,nl,nl,
+        DestOwner \= CurrentPlayer,
+        write('poppppoooo'),nl,
+        write(DestStack),nl,
+        write('popo'),nl,nl,
+        write(OriginStack),nl,
+        DestStack =< OriginStack,
+        write('popo'),nl
+    ),
+    !.  % If either condition is true, destination is valid.
+
+valid_destination(_, _, _) :-
+    write('Invalid move: Destination square does not satisfy move rules.'), nl, fail.
+
+
+switch_player(Player1,Player2).
+switch_player(Player2,Player1).
 
 
 
