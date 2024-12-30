@@ -313,10 +313,10 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
     % Validate the destination cell
-    valid_destination(DestCell, CurrentPlayer, OriginStack),
+    valid_destination(DestCell, CurrentPlayer, OriginStack).
 
     % If all validations pass, print confirmation
-    write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
+    % write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
 
 
 
@@ -412,11 +412,19 @@ replace_row(Board, Index, NewRow, NewBoard) :-
 
 % Prompt the human player for their move
 prompt_for_move(GameState, Move) :-
+    valid_moves(GameState, ListOfMoves),
+    write('Valid moves:'), nl,
+    print_valid_moves(ListOfMoves),
     write('Enter your move as ((X1, Y1), (X2, Y2)): '), nl,
     read(Input),
     (validate_input(GameState, Input) -> Move = Input;
      write('Invalid move. Please try again.'), nl,
      prompt_for_move(GameState, Move)).
+
+print_valid_moves([]).
+print_valid_moves([(Origin, Destination) | Rest]) :-
+    format('Move from ~w to ~w~n', [Origin, Destination]),
+    print_valid_moves(Rest).
 
 validate_input(GameState, Input):-
     GameState = game_state(
@@ -430,15 +438,24 @@ validate_input(GameState, Input):-
     Input = (Origin, Destination),
     valid_move(Board, CurrentPlayer, (Origin, Destination)).
 
-
-
-
+valid_moves(GameState, ListOfMoves) :-
+    GameState = game_state(Board, CurrentPlayer, _, _, _, _),
+    findall((Origin, Destination), (
+        member(Row, Board),
+        nth1(X, Board, Row),
+        nth1(Y, Row, (PieceValue, PiecePlayer)),
+        PiecePlayer = CurrentPlayer,
+        Origin = (X, Y),
+        % Generate possible destinations
+        (DestinationX is X + 1, Destination = (DestinationX, Y);
+         DestinationX is X - 1, Destination = (DestinationX, Y);
+         DestinationY is Y + 1, Destination = (X, DestinationY);
+         DestinationY is Y - 1, Destination = (X, DestinationY)),
+        valid_move(Board, CurrentPlayer, (Origin, Destination))
+    ), ListOfMoves).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
-
-valid_moves(GameState, Winner).
 
 game_over(GameState, Winner).
 
