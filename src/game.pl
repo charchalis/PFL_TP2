@@ -15,8 +15,8 @@ welcome :-
 
 
 reload :-
-    [game],
-    [tests].  % reload when changes are made
+    [game]. %,
+    % [tests].  % reload when changes are made
 
 
 
@@ -382,18 +382,31 @@ apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, 
                 NewDestCell = (NewStack, CurrentPlayer),
                 NewCapturedPieces = []
             ;
+                write('yo'),nl,
                 NewCapturedPieces = [(DestStack, DestOwner)],
-                NewDestCell = (OriginStack, CurrentPlayer)
+                NewDestCell = (OriginStack, CurrentPlayer),
+                write(NewDestCell),nl,nl
         )
     ),
     
     % Update the destination row
     replace_cell(DestRow, DestinationY, NewDestCell, UpdatedDestRow),
     replace_row(Board, DestinationX, UpdatedDestRow, TempBoard),
+
+    write(TempBoard),nl,nl,
     
+    % Extract the Origin Cell from TempBoard
+    nth1(OriginX, TempBoard, TempOriginRow),
+    nth1(OriginY, OriginRow, OriginCell),
+
     % Remove the origin stack
-    replace_cell(OriginRow, OriginY, (0,empty), UpdatedOriginRow),
+    replace_cell(TempOriginRow, OriginY, (0,empty), UpdatedOriginRow),
+
+    write(UpdatedOriginRow),nl,nl,
+
     replace_row(TempBoard, OriginX, UpdatedOriginRow, NewBoard),
+
+    write(NewBoard),nl,nl,
     
     write('move applied'),nl.
 
@@ -412,7 +425,7 @@ replace_row(Board, Index, NewRow, NewBoard) :-
 
 % Prompt the human player for their move
 prompt_for_move(GameState, Move) :-
-    valid_moves(GameState, ListOfMoves),
+    % valid_moves(GameState, ListOfMoves),
     write('Valid moves:'), nl,
     print_valid_moves(ListOfMoves),
     write('Enter your move as ((X1, Y1), (X2, Y2)): '), nl,
@@ -454,6 +467,8 @@ valid_moves(GameState, ListOfMoves) :-
         valid_move(Board, CurrentPlayer, (Origin, Destination))
     ), Moves),
     sort(Moves, ListOfMoves).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
