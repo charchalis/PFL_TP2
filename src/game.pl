@@ -1,10 +1,12 @@
 % Anaash Game in SICStus Prolog
 
 :- use_module(library(lists)).
+:- use_module(library(random)).
+:- use_module(library(system)).
 
 play :-
     welcome,
-    DefaultConfig = game_config(human_vs_computer, easy, small),
+    DefaultConfig = game_config(computer_vs_computer, 1, small),
     main_menu(DefaultConfig).
 
 welcome :-
@@ -18,16 +20,46 @@ reload :-
     [game]. %,
     % [tests].  % reload when changes are made
 
-
+r :-
+    reload,
+    play.
 
 
 
 
 game_cycle(GameState):-
+    GameState = game_state(_,CurrentPlayer,_,_,GameType,_),
     display_game(GameState),
-    prompt_for_move(GameState, Move),
-    move(GameState, Move, NewGameState),
-    game_cycle(NewGameState).
+    game_over(GameState, Winner),
+    (
+        Winner \= none ->  % If a winner is found, terminate
+        format("Game over! Winner is: ~w~n", [Winner]),nl,nl;
+        (
+            species_identificator(CurrentPlayer, GameType, IsHuman),
+            next_move(IsHuman, GameState, Move),
+            move(GameState, Move, NewGameState),
+            game_cycle(NewGameState)  % Otherwise, continue the game cycle
+        )
+    ).
+
+winner(player1).
+winner(player2).
+
+% Define game_over/2 to check the condition and determine the winner
+game_over(game_state(Board, _, _, _, _, _), Winner) :-
+    find_non_empty(Board, NonEmptyCells),
+    length(NonEmptyCells, 1),        % Ensure only one non-empty cell exists
+    NonEmptyCells = [(Score, Winner)], % Extract the winner's name from the non-empty cell
+    Score > 0.                      % Ensure the score is positive (valid condition)
+
+% Helper predicate to find all non-empty cells
+find_non_empty(Board, NonEmptyCells) :-
+    findall((Score, Name), (
+        nth1(_, Board, Row),         % Get each row (index is ignored here)
+        nth1(_, Row, (Score, Name)), % Get each cell
+        Name \= empty                % Check if the cell is not empty
+    ), NonEmptyCells).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -45,7 +77,8 @@ main_menu(GameConfig) :-
 handle_main_menu(1, GameConfig):-
     write('Starting game...'), nl,
     initial_state(GameConfig, GameState),
-    game_cycle(GameState).
+    game_cycle(GameState),
+    main_menu(GameConfig).
 
 handle_main_menu(2, GameConfig):-
     game_type_menu(GameConfig).
@@ -76,16 +109,16 @@ handle_game_type_menu(4, computer_vs_computer).
 
 
 difficulty_menu(game_config(GameType, _, Size)) :-
-    write('1. easy'), nl,
-    write('2. medium'), nl,
-    write('3. hard'), nl,
-    read_option('Choose an option', 1, 2, Option),
+    write('1. random'), nl,
+    write('2. greedy'), nl,
+    write('3. fancy'), nl,
+    read_option('Choose an option', 1, 3, Option),
     handle_difficulty_menu(Option, Difficulty),
     main_menu(game_config(GameType, Difficulty, Size)).
 
-handle_difficulty_menu(1, easy).
-handle_difficulty_menu(2, medium).
-handle_difficulty_menu(3, hard).
+handle_difficulty_menu(1, 1).
+handle_difficulty_menu(2, 2).
+handle_difficulty_menu(3, 3).
 
 size_menu(game_config(GameType, Difficulty, _)) :-
     write('1. small board\t(6x6)'), nl,
@@ -354,20 +387,20 @@ switch_player(player2,player1).
 
 apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, CurrentPlayer, NewCapturedPieces) :-
 
-    write('applying move'),nl,
-    format('Origin: (~w, ~w), Destination: (~w, ~w)', [OriginX, OriginY, DestinationX, DestinationY]), nl,
+    %write('applying move'),nl,
+    %format('Origin: (~w, ~w), Destination: (~w, ~w)', [OriginX, OriginY, DestinationX, DestinationY]), nl,
 
     % Extract the Origin Cell
     nth1(OriginX, Board, OriginRow),
     nth1(OriginY, OriginRow, OriginCell),
-    format('Origin Cell: ~w', [OriginCell]), nl,
+    %format('Origin Cell: ~w', [OriginCell]), nl,
 
     OriginCell = (OriginStack, _Owner),
     
     % Extract the Destination Cell
     nth1(DestinationX, Board, DestRow),
     nth1(DestinationY, DestRow, DestCell),
-    format('Destination Cell: ~w', [DestCell]), nl,
+    %format('Destination Cell: ~w', [DestCell]), nl,
     
     % Handle stacking logic for the destination
     (
@@ -382,10 +415,8 @@ apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, 
                 NewDestCell = (NewStack, CurrentPlayer),
                 NewCapturedPieces = []
             ;
-                write('yo'),nl,
                 NewCapturedPieces = [(DestStack, DestOwner)],
-                NewDestCell = (OriginStack, CurrentPlayer),
-                write(NewDestCell),nl,nl
+                NewDestCell = (OriginStack, CurrentPlayer)
         )
     ),
     
@@ -393,7 +424,6 @@ apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, 
     replace_cell(DestRow, DestinationY, NewDestCell, UpdatedDestRow),
     replace_row(Board, DestinationX, UpdatedDestRow, TempBoard),
 
-    write(TempBoard),nl,nl,
     
     % Extract the Origin Cell from TempBoard
     nth1(OriginX, TempBoard, TempOriginRow),
@@ -401,14 +431,10 @@ apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, 
 
     % Remove the origin stack
     replace_cell(TempOriginRow, OriginY, (0,empty), UpdatedOriginRow),
-
-    write(UpdatedOriginRow),nl,nl,
-
     replace_row(TempBoard, OriginX, UpdatedOriginRow, NewBoard),
-
-    write(NewBoard),nl,nl,
     
-    write('move applied'),nl.
+    format('~w played (~w, ~w) -> (~w, ~w)', [CurrentPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl.
+    % write('move applied'),nl.
 
 % Replace a cell in a row
 replace_cell(Row, Index, NewCell, NewRow) :-
@@ -426,10 +452,13 @@ replace_row(Board, Index, NewRow, NewBoard) :-
 % Prompt the human player for their move
 prompt_for_move(GameState, Move) :-
     % valid_moves(GameState, ListOfMoves),
-    write('Valid moves:'), nl,
-    print_valid_moves(ListOfMoves),
-    write('Enter your move as ((X1, Y1), (X2, Y2)): '), nl,
-    read(Input),
+    % write('Valid moves:'), nl,
+    % print_valid_moves(ListOfMoves),
+    write('Start position (X1, Y1):'), nl,
+    read(StartPos),
+    write('End position (X2, Y2):'), nl,
+    read(EndPos),
+    Input = (StartPos, EndPos),
     (validate_input(GameState, Input) -> Move = Input;
      write('Invalid move. Please try again.'), nl,
      prompt_for_move(GameState, Move)).
@@ -469,8 +498,38 @@ valid_moves(GameState, ListOfMoves) :-
     sort(Moves, ListOfMoves).
 
 
+
+
+species_identificator(_, human_vs_human, true).
+species_identificator(player1, human_vs_computer, true).
+species_identificator(player2, computer_vs_human, true).
+species_identificator(_,_,false).
+
+next_move(true, GameState, Move):-
+    prompt_for_move(GameState, Move).
+next_move(false, GameState, Move):-
+    GameState = game_state(_,_,_,_,_,Difficulty),
+    next_bot_move(Difficulty, GameState, Move).
+
+% random move
+next_bot_move(1, GameState, Move):-
+    valid_moves(GameState, ListOfMoves),
+    random_member(Move, ListOfMoves).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% greedy move
+next_bot_move(1, GameState, Move):-
+    valid_moves(GameState, ListOfMoves)
+    % TODO: greedy logic
+    .
+
+% 4 dimensions ahead move
+next_bot_move(1, GameState, Move):-
+    valid_moves(GameState, ListOfMoves)
+    % TODO: fancy logic
+    .
 
 
 game_over(GameState, Winner).
