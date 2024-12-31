@@ -133,7 +133,7 @@ read_option(Prompt, Min, Max, Option) :-
 
 initial_state(game_config(GameType, Difficulty, Size), GameState) :-
     % Create a board
-    (Size = small -> BoardSize = 6 ; BoardSize = 8),
+    (Size = small -> BoardSize = 2 ; BoardSize = 8),
     generate_board(BoardSize, Board),
     % Define the current player as player1
     CurrentPlayer = player1,
@@ -491,10 +491,10 @@ next_move(true, GameState, Move):-
     prompt_for_move(GameState, Move).
 next_move(false, GameState, Move):-
     GameState = game_state(_,_,_,_,_,Difficulty),
-    choose_move(GameState, Difficulty, Move).
+    choose_move(Difficulty, GameState, Move).
 
 % random move
-choose_move(GameState, 1,  Move):-
+choose_move(1, GameState, Move):-
     valid_moves(GameState, ListOfMoves),
     random_member(Move, ListOfMoves).
 
@@ -521,24 +521,24 @@ find_non_empty(Board, NonEmptyCells) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
 % greedy move
-next_bot_move(GameState, 2, Move):-
+choose_move(GameState, 2, Move):-
     valid_moves(GameState, ListOfMoves)
     % TODO: greedy logic
     .
 
 % 4 dimensions ahead move
-next_bot_move(GameState, 3, Move):-
+choose_move(GameState, 3, Move):-
     valid_moves(GameState, ListOfMoves)
     % TODO: fancy logic
     .
 
 
-
+game_over(GameState, Winner).
 
 value(GameState, Player, Value).
+
+choose_move(GameState, Level, Move).
 
 
 
