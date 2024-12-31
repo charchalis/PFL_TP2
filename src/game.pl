@@ -42,24 +42,6 @@ game_cycle(GameState):-
         )
     ).
 
-winner(player1).
-winner(player2).
-
-% Define game_over/2 to check the condition and determine the winner
-game_over(game_state(Board, _, _, _, _, _), Winner) :-
-    find_non_empty(Board, NonEmptyCells),
-    length(NonEmptyCells, 1),        % Ensure only one non-empty cell exists
-    NonEmptyCells = [(Score, Winner)], % Extract the winner's name from the non-empty cell
-    Score > 0.                      % Ensure the score is positive (valid condition)
-
-% Helper predicate to find all non-empty cells
-find_non_empty(Board, NonEmptyCells) :-
-    findall((Score, Name), (
-        nth1(_, Board, Row),         % Get each row (index is ignored here)
-        nth1(_, Row, (Score, Name)), % Get each cell
-        Name \= empty                % Check if the cell is not empty
-    ), NonEmptyCells).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -515,6 +497,26 @@ next_move(false, GameState, Move):-
 next_bot_move(1, GameState, Move):-
     valid_moves(GameState, ListOfMoves),
     random_member(Move, ListOfMoves).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% GAME OVER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Define game_over/2 to check the condition and determine the winner
+game_over(game_state(Board, _, _, _, _, _), Winner) :-
+    find_non_empty(Board, NonEmptyCells),
+    length(NonEmptyCells, 1),        % Ensure only one non-empty cell exists
+    NonEmptyCells = [(Score, Winner)], % Extract the winner's name from the non-empty cell
+    Score > 0.                      % Ensure the score is positive (valid condition)
+
+% Helper predicate to find all non-empty cells
+find_non_empty(Board, NonEmptyCells) :-
+    findall((Score, Name), (
+        nth1(_, Board, Row),         % Get each row (index is ignored here)
+        nth1(_, Row, (Score, Name)), % Get each cell
+        Name \= empty                % Check if the cell is not empty
+    ), NonEmptyCells).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
