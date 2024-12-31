@@ -491,10 +491,10 @@ next_move(true, GameState, Move):-
     prompt_for_move(GameState, Move).
 next_move(false, GameState, Move):-
     GameState = game_state(_,_,_,_,_,Difficulty),
-    next_bot_move(Difficulty, GameState, Move).
+    choose_move(GameState, Difficulty, Move).
 
 % random move
-next_bot_move(1, GameState, Move):-
+choose_move(GameState, 1,  Move):-
     valid_moves(GameState, ListOfMoves),
     random_member(Move, ListOfMoves).
 
@@ -521,24 +521,24 @@ find_non_empty(Board, NonEmptyCells) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
 % greedy move
-next_bot_move(1, GameState, Move):-
+next_bot_move(GameState, 2, Move):-
     valid_moves(GameState, ListOfMoves)
     % TODO: greedy logic
     .
 
 % 4 dimensions ahead move
-next_bot_move(1, GameState, Move):-
+next_bot_move(GameState, 3, Move):-
     valid_moves(GameState, ListOfMoves)
     % TODO: fancy logic
     .
 
 
-game_over(GameState, Winner).
+
 
 value(GameState, Player, Value).
-
-choose_move(GameState, Level, Move).
 
 
 
