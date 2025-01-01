@@ -433,17 +433,20 @@ replace_row(Board, Index, NewRow, NewBoard) :-
 
 % Prompt the human player for their move
 prompt_for_move(GameState, Move) :-
-    % valid_moves(GameState, ListOfMoves),
-    % write('Valid moves:'), nl,
-    % print_valid_moves(ListOfMoves),
+    write('You can type "moves" to see the valid list of moves.'), nl,
     write('Start position (X1, Y1):'), nl,
     read(StartPos),
+    (StartPos == moves ->
+        valid_moves(GameState, ListOfMoves),
+        write('Valid moves:'), nl,
+        print_valid_moves(ListOfMoves),
+        prompt_for_move(GameState, Move);
     write('End position (X2, Y2):'), nl,
     read(EndPos),
     Input = (StartPos, EndPos),
     (validate_input(GameState, Input) -> Move = Input;
      write('Invalid move. Please try again.'), nl,
-     prompt_for_move(GameState, Move)).
+     prompt_for_move(GameState, Move))).
 
 print_valid_moves([]).
 print_valid_moves([(Origin, Destination) | Rest]) :-
