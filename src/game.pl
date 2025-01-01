@@ -339,23 +339,27 @@ orthogonal_one_square(OriginX, OriginY, DestinationX, DestinationY) :-
     (DestinationY = OriginY, abs(DestinationX - OriginX) =:= 1).  % Vertical move
 
 closest_stack(Board, (OriginX, OriginY), (StackX, StackY)) :-
-    findall((X, Y), (nth1(X, Board, Row), nth1(Y, Row, (Stack, _)), Stack > 0), Stacks),
+    findall((X, Y), (nth1(X, Board, Row), nth1(Y, Row, (Stack, _)), Stack > 0, (X, Y) \= (OriginX, OriginY)), Stacks),
     maplist(distance((OriginX, OriginY)), Stacks, Distances),
     min_member(MinDistance, Distances),
     nth1(Index, Distances, MinDistance),
     nth1(Index, Stacks, (StackX, StackY)).
 
 distance((X1, Y1), (X2, Y2), Distance) :-
+    %write('Calculating distance between '), write((X1, Y1)), write(' and '), write((X2, Y2)), nl,
     Distance is abs(X1 - X2) + abs(Y1 - Y2).
+    %write('Distance: '), write(Distance), nl.
 
 
 % valid_destination(+Board, +Origin, +Destination, +DestCell, +CurrentPlayer, +OriginStack)
 valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
     closest_stack(Board, Origin, (StackX, StackY)),
+    %write('Closest stack: '), write((StackX, StackY)), nl,
     distance(Origin, (StackX, StackY), OriginDistance),
     distance(Destination, (StackX, StackY), DestinationDistance),
     (DestinationDistance < OriginDistance -> true ; 
-        write('Invalid move: Does not bring piece closer to its closest stack.'), nl, fail),
+        %write('Invalid move: Does not bring piece closer to its closest stack.'), nl, 
+        fail),
     !.  % Destination is empty -> valid if it brings the piece closer to its closest stack.
 
 valid_destination(_, _, _, (DestStack, DestOwner), CurrentPlayer, OriginStack) :-
@@ -512,6 +516,7 @@ next_move(false, GameState, Move):-
 % random move
 choose_move(1, GameState, Move):-
     valid_moves(GameState, ListOfMoves),
+    %print_valid_moves(ListOfMoves),
     random_member(Move, ListOfMoves).
 
 
