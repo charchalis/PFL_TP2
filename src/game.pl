@@ -328,25 +328,37 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
     % Validate the destination cell
-    valid_destination(DestCell, CurrentPlayer, OriginStack).
+    valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack).
 
     % If all validations pass, print confirmation
     % write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
-
-
 
 
 orthogonal_one_square(OriginX, OriginY, DestinationX, DestinationY) :-
     (DestinationX = OriginX, abs(DestinationY - OriginY) =:= 1) ;  % Horizontal move
     (DestinationY = OriginY, abs(DestinationX - OriginX) =:= 1).  % Vertical move
 
+closest_stack(Board, (OriginX, OriginY), (StackX, StackY)) :-
+    findall((X, Y), (nth1(X, Board, Row), nth1(Y, Row, (Stack, _)), Stack > 0), Stacks),
+    maplist(distance((OriginX, OriginY)), Stacks, Distances),
+    min_member(MinDistance, Distances),
+    nth1(Index, Distances, MinDistance),
+    nth1(Index, Stacks, (StackX, StackY)).
+
+distance((X1, Y1), (X2, Y2), Distance) :-
+    Distance is abs(X1 - X2) + abs(Y1 - Y2).
 
 
-% valid_destination(+DestCell, +CurrentPlayer, +OriginStack)
-valid_destination(empty, _, _) :-
-    !.  % Destination is empty -> valid.
+% valid_destination(+Board, +Origin, +Destination, +DestCell, +CurrentPlayer, +OriginStack)
+valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
+    closest_stack(Board, Origin, (StackX, StackY)),
+    distance(Origin, (StackX, StackY), OriginDistance),
+    distance(Destination, (StackX, StackY), DestinationDistance),
+    (DestinationDistance < OriginDistance -> true ; 
+        write('Invalid move: Does not bring piece closer to its closest stack.'), nl, fail),
+    !.  % Destination is empty -> valid if it brings the piece closer to its closest stack.
 
-valid_destination((DestStack, DestOwner), CurrentPlayer, OriginStack) :-
+valid_destination(_, _, _, (DestStack, DestOwner), CurrentPlayer, OriginStack) :-
     (   % Friendly stack with higher value
         DestOwner = CurrentPlayer,
         DestStack >= OriginStack
@@ -357,7 +369,7 @@ valid_destination((DestStack, DestOwner), CurrentPlayer, OriginStack) :-
     ),
     !.  % If either condition is true, destination is valid.
 
-valid_destination(_, _, _) :-
+valid_destination(_, _, _, _, _, _) :-
     write('Invalid move: Destination square does not satisfy move rules.'), nl, fail.
 
 
@@ -526,7 +538,6 @@ count_pieces(Board, Player, Count) :-
     length(Pieces, Count).
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % greedy move
@@ -542,7 +553,7 @@ choose_move(GameState, 3, Move):-
     .
 
 
-value(GameState, Player, Value):-
+value(GameState, Player, Value).
 
 game_over(GameState, Winner).
 
