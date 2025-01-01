@@ -505,18 +505,22 @@ choose_move(1, GameState, Move):-
 
 % Define game_over/2 to check the condition and determine the winner
 game_over(game_state(Board, _, _, _, _, _), Winner) :-
-    find_non_empty(Board, NonEmptyCells),
-    length(NonEmptyCells, 1),        % Ensure only one non-empty cell exists
-    NonEmptyCells = [(Score, Winner)], % Extract the winner's name from the non-empty cell
-    Score > 0.                      % Ensure the score is positive (valid condition)
+    count_pieces(Board, player1, Player1Count),
+    count_pieces(Board, player2, Player2Count),
+    (
+        Player1Count =:= 0 -> Winner = player2;
+        Player2Count =:= 0 -> Winner = player1;
+        Winner = none
+    ).
 
-% Helper predicate to find all non-empty cells
-find_non_empty(Board, NonEmptyCells) :-
-    findall((Score, Name), (
-        nth1(_, Board, Row),         % Get each row (index is ignored here)
-        nth1(_, Row, (Score, Name)), % Get each cell
-        Name \= empty                % Check if the cell is not empty
-    ), NonEmptyCells).
+% Helper predicate to count pieces for a player
+count_pieces(Board, Player, Count) :-
+    findall(Stack, (
+        nth1(_, Board, Row),
+        nth1(_, Row, (Stack, Player)),
+        Stack > 0
+    ), Pieces),
+    length(Pieces, Count).
 
 
 
