@@ -438,6 +438,7 @@ validate_input(GameState, Input):-
     Input = (Origin, Destination),
     valid_move(Board, CurrentPlayer, (Origin, Destination)).
 
+% This computes the valid moves for every piece of the current player 
 valid_moves(GameState, ListOfMoves) :-
     GameState = game_state(Board, CurrentPlayer, _, _, _, _),
     findall((Origin, Destination), (
@@ -446,14 +447,15 @@ valid_moves(GameState, ListOfMoves) :-
         nth1(Y, Row, (PieceValue, PiecePlayer)),
         PiecePlayer = CurrentPlayer,
         Origin = (X, Y),
-        % Generate possible destinations
+        % Possible destination squares for the piece: 
         (DestinationX is X + 1, Destination = (DestinationX, Y);
          DestinationX is X - 1, Destination = (DestinationX, Y);
          DestinationY is Y + 1, Destination = (X, DestinationY);
          DestinationY is Y - 1, Destination = (X, DestinationY)),
         valid_move(Board, CurrentPlayer, (Origin, Destination))
     ), Moves),
-    sort(Moves, ListOfMoves).
+    sort(Moves, ListOfMoves). % Sorting the list removes duplicates
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
