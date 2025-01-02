@@ -328,7 +328,7 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
     (   forced_moves(Board, CurrentPlayer, ForcedMoves),
-        write('Forced moves: '), write(ForcedMoves), nl,
+        %write('Forced moves: '), write(ForcedMoves), nl,
         ForcedMoves \= []
     ->  member((Origin, Destination), ForcedMoves)
     ;   
@@ -359,7 +359,8 @@ valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
     distance(Origin, (StackX, StackY), OriginDistance),
     distance(Destination, (StackX, StackY), DestinationDistance),
     (DestinationDistance =< OriginDistance,
-        write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl -> true ; 
+        %write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'),
+        nl -> true ; 
         %write('Invalid move: Does not bring piece closer to its closest stack.'), nl, 
         fail),
     !.  % Destination is empty -> valid if it brings the piece closer to its closest stack.
@@ -545,7 +546,7 @@ next_move(false, GameState, Move):-
 % random move
 choose_move(1, GameState, Move):-
     valid_moves(GameState, ListOfMoves),
-    print_valid_moves(ListOfMoves),
+    %print_valid_moves(ListOfMoves),
     random_member(Move, ListOfMoves).
 
 
