@@ -327,9 +327,13 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationX, Board, DestRow), % Get the row at DestinationX
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
-    % Validate the destination cell
-    valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack).
-
+    (   forced_moves(Board, CurrentPlayer, ForcedMoves),
+        write('Forced moves: '), write(ForcedMoves), nl,
+        ForcedMoves \= []
+    ->  member((Origin, Destination), ForcedMoves)
+    ;   
+        valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack)
+    ).
     % If all validations pass, print confirmation
     % write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
 
@@ -346,18 +350,16 @@ closest_stack(Board, (OriginX, OriginY), (StackX, StackY)) :-
     nth1(Index, Stacks, (StackX, StackY)).
 
 distance((X1, Y1), (X2, Y2), Distance) :-
-    %write('Calculating distance between '), write((X1, Y1)), write(' and '), write((X2, Y2)), nl,
     Distance is abs(X1 - X2) + abs(Y1 - Y2).
-    %write('Distance: '), write(Distance), nl.
 
 
 % valid_destination(+Board, +Origin, +Destination, +DestCell, +CurrentPlayer, +OriginStack)
 valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
     closest_stack(Board, Origin, (StackX, StackY)),
-    %write('Closest stack: '), write((StackX, StackY)), nl,
     distance(Origin, (StackX, StackY), OriginDistance),
     distance(Destination, (StackX, StackY), DestinationDistance),
-    (DestinationDistance < OriginDistance -> true ; 
+    (DestinationDistance =< OriginDistance,
+        write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl -> true ; 
         %write('Invalid move: Does not bring piece closer to its closest stack.'), nl, 
         fail),
     !.  % Destination is empty -> valid if it brings the piece closer to its closest stack.
@@ -365,18 +367,45 @@ valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
 valid_destination(_, _, _, (DestStack, DestOwner), CurrentPlayer, OriginStack) :-
     (   % Friendly stack with higher value
         DestOwner = CurrentPlayer,
-        DestStack >= OriginStack
+        DestStack >= OriginStack,
+        DestStack > 0
     ;
         % Enemy stack with lower value
         DestOwner \= CurrentPlayer,
-        DestStack =< OriginStack
+        DestStack =< OriginStack,
+        DestStack > 0
     ),
     !.  % If either condition is true, destination is valid.
 
 valid_destination(_, _, _, _, _, _) :-
-    write('Invalid move: Destination square does not satisfy move rules.'), nl, fail.
+    %write('Invalid move: Destination square does not satisfy move rules.'), nl, 
+    fail.
 
-
+forced_moves(Board, CurrentPlayer, ForcedMoves) :-
+    findall(((OriginX, OriginY), (DestinationX, DestinationY)), (
+        nth1(OriginX, Board, Row),
+        nth1(OriginY, Row, (Stack, Owner)),
+        Owner = CurrentPlayer,
+        % Possible destination squares for the piece: 
+        (DestinationX is OriginX + 1, DestinationY = OriginY;
+         DestinationX is OriginX - 1, DestinationY = OriginY;
+         DestinationX = OriginX, DestinationY is OriginY + 1;
+         DestinationX = OriginX, DestinationY is OriginY - 1),
+        nth1(DestinationX, Board, DestRow),
+        nth1(DestinationY, DestRow, (DestStack, DestOwner)),
+        DestOwner \= empty,  
+        (   % Check for captures
+            DestOwner \= CurrentPlayer,
+            DestStack =< Stack,
+            DestStack > 0
+        ;   % Check for stacks
+            DestOwner = CurrentPlayer,
+            DestStack >= Stack,
+            DestStack > 0
+        )
+    ), ForcedMovesUnsorted),
+    sort(ForcedMovesUnsorted, ForcedMoves),
+    ForcedMoves \= [].
 
 switch_player(player1,player2).
 switch_player(player2,player1).
@@ -516,7 +545,7 @@ next_move(false, GameState, Move):-
 % random move
 choose_move(1, GameState, Move):-
     valid_moves(GameState, ListOfMoves),
-    %print_valid_moves(ListOfMoves),
+    print_valid_moves(ListOfMoves),
     random_member(Move, ListOfMoves).
 
 
