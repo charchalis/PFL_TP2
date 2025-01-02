@@ -6,7 +6,7 @@
 
 play :-
     welcome,
-    DefaultConfig = game_config(computer_vs_computer, 1, small),
+    DefaultConfig = game_config(computer_vs_computer, 2, small),
     main_menu(DefaultConfig).
 
 welcome :-
@@ -38,9 +38,28 @@ game_cycle(GameState):-
             species_identificator(CurrentPlayer, GameType, IsHuman),
             next_move(IsHuman, GameState, Move),
             move(GameState, Move, NewGameState),
+            print_move(NewGameState, Move),
             game_cycle(NewGameState)  % Otherwise, continue the game cycle
         )
     ).
+
+
+print_move(GameState, Move) :-
+    % Extract the difficulty and current player from the game state
+    GameState = game_state(_, CurrentPlayer, _, _, _, Difficulty),
+
+    % Determine the format of the move based on difficulty
+    (   Difficulty == 2
+    ->  % Difficulty 2 format
+        Move = ((OriginX, OriginY), DestinationX, DestinationY)
+    ;   % Other difficulties
+        Move = ((OriginX, OriginY), (DestinationX, DestinationY))
+    ),nl,
+
+    switch_player(CurrentPlayer, NextPlayer),
+
+    % Print the move
+    format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -459,10 +478,7 @@ apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, 
 
     % Remove the origin stack
     replace_cell(TempOriginRow, OriginY, (0,empty), UpdatedOriginRow),
-    replace_row(TempBoard, OriginX, UpdatedOriginRow, NewBoard),
-    
-    format('~w played (~w, ~w) -> (~w, ~w)', [CurrentPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl.
-    % write('move applied'),nl.
+    replace_row(TempBoard, OriginX, UpdatedOriginRow, NewBoard).
 
 % Replace a cell in a row
 replace_cell(Row, Index, NewCell, NewRow) :-
@@ -581,6 +597,8 @@ count_pieces(Board, Player, Count) :-
 choose_move(0, GameState, Move) :-
     prompt_for_move(GameState, Move).
 
+
+
 % Level 1: Random move
 choose_move(1, GameState, Move):-
     valid_moves(GameState, ListOfMoves),
@@ -588,17 +606,65 @@ choose_move(1, GameState, Move):-
     random_member(Move, ListOfMoves).
 
 
-% Level 2: Best move based on greedy evaluation
-choose_move(GameState, 2, Move).
+% choose_move(+Difficulty, +GameState, -Move)
+choose_move(2, GameState, BestMove) :- % Level 2: Greedy strategy
+    GameState = game_state(Board, CurrentPlayer, _, _, _, _),
+    findall(Move, valid_moves_for_player(Board, CurrentPlayer, Move), Moves),
+    write('Evaluating moves:'),nl,
+    evaluate_moves(GameState, Moves, ScoredMoves),
+    select_best_move(ScoredMoves, BestMove).
 
 
 
-% 4 dimensions ahead move
-choose_move(GameState, 3, Move):-
-    valid_moves(GameState, ListOfMoves)
-    % TODO: fancy logic
-    .
+% Generate all valid moves for a player
+valid_moves_for_player(Board, Player, (Origin, Destination)) :-
+    nth1(X, Board, Row),
+    nth1(Y, Row, (Stack, Owner)),
+    Owner = Player,
+    Origin = (X, Y),
+    (DestinationX is X + 1, Destination = (DestinationX, Y);
+     DestinationX is X - 1, Destination = (DestinationX, Y);
+     DestinationY is Y + 1, Destination = (X, DestinationY);
+     DestinationY is Y - 1, Destination = (X, DestinationY)),
+    valid_move(Board, Player, (Origin, Destination)).
 
+% Evaluate each move and assign a score using value/2
+evaluate_moves(_, [], []).
+evaluate_moves(GameState, [Move | RestMoves], [Score-Move | RestScoredMoves]) :-
+    move(GameState, Move, NewGameState),
+    value(NewGameState, Score),
+    Move = ((OriginX, OriginY), DestinationX, DestinationY),
+    format('(~w, ~w) -> (~w, ~w), value: ~w', [OriginX, OriginY, DestinationX, DestinationY, Score]), nl,
+    evaluate_moves(GameState, RestMoves, RestScoredMoves).
+
+% Select the best move based on score (CHOOSES RANDOM BEST MOVE) (BUG)
+select_best_move(ScoredMoves, BestMove) :-
+    keysort(ScoredMoves, SortedMoves),
+    reverse(SortedMoves, [_HighestScore-_ | _]), % Get the highest score
+    findall(Move, member(HighestScore-Move, SortedMoves), BestMoves), % Collect all moves with the highest score
+    random_member(BestMove, BestMoves). % Select a random move from the best moves
+
+
+% Select the best move based on score  (ALWAYS CHOOSES LAST BEST MOVE)
+select_best_move(ScoredMoves, BestMove) :-
+    keysort(ScoredMoves, SortedMoves),
+    reverse(SortedMoves, [_HighestScore-BestMove | _]). % Extract the move with the highest score.
+
+% value(+GameState, -Score)
+% Define a heuristic to evaluate the game state.
+value(game_state(_, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
+    % Example heuristic: Number of pieces captured
+    include(player_captured(CurrentPlayer), CapturedPieces, PlayerCaptured),
+    length(PlayerCaptured, Score).
+
+% Check if a captured piece belongs to the player
+player_captured(Player, (_, Player)).
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VALUE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -606,33 +672,8 @@ choose_move(GameState, 3, Move):-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-value(GameState, Player, Value).
-
-game_over(GameState, Winner).
-
-value(GameState, Player, Value).
-
-choose_move(GameState, Level, Move).
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+choose_move(GameState, Level, Move). % this CANNOT be deleted for black magic reasons
 
