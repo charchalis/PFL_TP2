@@ -616,6 +616,15 @@ choose_move(2, GameState, BestMove) :- % Level 2: Greedy strategy
 
 
 
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VALUE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % Generate all valid moves for a player
 valid_moves_for_player(Board, Player, (Origin, Destination)) :-
     nth1(X, Board, Row),
@@ -661,10 +670,6 @@ value(game_state(_, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
 player_captured(Player, (_, Player)).
 
 
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VALUE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
