@@ -480,6 +480,7 @@ replace_row(Board, Index, NewRow, NewBoard) :-
 % Prompt the human player for their move
 prompt_for_move(GameState, Move) :-
     write('You can type "moves" to see the valid list of moves.'), nl,
+    write('You can type "exit" to return to main menu.'), nl,
     write('Start position (X1, Y1):'), nl,
     read(StartPos),
     (StartPos == moves ->
@@ -487,6 +488,11 @@ prompt_for_move(GameState, Move) :-
         write('Valid moves:'), nl,
         print_valid_moves(ListOfMoves),
         prompt_for_move(GameState, Move);
+    StartPos == exit ->
+        GameState = game_state(_, _, _, _, GameType, Difficulty),nl,nl,
+        % Reuse configuration to return to the menu
+        main_menu(game_config(GameType, Difficulty, small));
+    
     write('End position (X2, Y2):'), nl,
     read(EndPos),
     Input = (StartPos, EndPos),
@@ -538,16 +544,10 @@ species_identificator(player2, computer_vs_human, true).
 species_identificator(_,_,false).
 
 next_move(true, GameState, Move):-
-    prompt_for_move(GameState, Move).
+    choose_move(0, GameState, Move).
 next_move(false, GameState, Move):-
     GameState = game_state(_,_,_,_,_,Difficulty),
     choose_move(Difficulty, GameState, Move).
-
-% random move
-choose_move(1, GameState, Move):-
-    valid_moves(GameState, ListOfMoves),
-    %print_valid_moves(ListOfMoves),
-    random_member(Move, ListOfMoves).
 
 
 
@@ -573,13 +573,25 @@ count_pieces(Board, Player, Count) :-
     length(Pieces, Count).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% greedy move
-choose_move(GameState, 2, Move):-
-    valid_moves(GameState, ListOfMoves)
-    % TODO: greedy logic
-    .
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CHOOSE MOVES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Level 0: Human player move
+choose_move(0, GameState, Move) :-
+    prompt_for_move(GameState, Move).
+
+% Level 1: Random move
+choose_move(1, GameState, Move):-
+    valid_moves(GameState, ListOfMoves),
+    %print_valid_moves(ListOfMoves),
+    random_member(Move, ListOfMoves).
+
+
+% Level 2: Best move based on greedy evaluation
+choose_move(GameState, 2, Move).
+
+
 
 % 4 dimensions ahead move
 choose_move(GameState, 3, Move):-
@@ -587,6 +599,12 @@ choose_move(GameState, 3, Move):-
     % TODO: fancy logic
     .
 
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TODO: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 value(GameState, Player, Value).
 
