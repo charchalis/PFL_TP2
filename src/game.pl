@@ -735,17 +735,45 @@ evaluate_moves(GameState, [Move | RestMoves], [Score-Move | RestScoredMoves]) :-
     evaluate_moves(GameState, RestMoves, RestScoredMoves).
 
 % Select the best move based on score (CHOOSES RANDOM BEST MOVE) (BUG)
+% select_best_move(ScoredMoves, BestMove) :-
+%     keysort(ScoredMoves, SortedMoves),
+%     reverse(SortedMoves, [_HighestScore-_ | _]), % Get the highest score
+%     findall(Move, member(HighestScore-Move, SortedMoves), BestMoves), % Collect all moves with the highest score
+%     nl,nl,write(BestMoves),nl,nl,
+%     random_member(BestMove, BestMoves). % Select a random move from the best moves
+
+
 select_best_move(ScoredMoves, BestMove) :-
-    keysort(ScoredMoves, SortedMoves),
-    reverse(SortedMoves, [_HighestScore-_ | _]), % Get the highest score
-    findall(Move, member(HighestScore-Move, SortedMoves), BestMoves), % Collect all moves with the highest score
-    random_member(BestMove, BestMoves). % Select a random move from the best moves
+    % Find the maximum score
+    maplist(score_from_pair, ScoredMoves, Scores),
+    max_in_list(Scores, MaxScore),
+
+    % Filter the scored moves to get only the ones with the maximum score
+    include(is_best_move(MaxScore), ScoredMoves, BestScoredMoves),
+
+    % Randomly select one of the best moves
+    random_member(_Score-BestMove, BestScoredMoves).
+
+% Helper predicate to extract the score from a Score-Move pair
+score_from_pair(Score-_, Score).
+
+% Helper predicate to check if a Score-Move pair matches the max score
+is_best_move(MaxScore, Score-_) :-
+    Score =:= MaxScore.
+
+% Base case: The maximum of a single-element list is that element itself.
+max_in_list([X], X).
+
+% Recursive case: Compare the head of the list with the maximum of the tail.
+max_in_list([X | Rest], Max) :-
+    max_in_list(Rest, TailMax),
+    Max is max(X, TailMax).
 
 
 % Select the best move based on score  (ALWAYS CHOOSES LAST BEST MOVE)
-select_best_move(ScoredMoves, BestMove) :-
-    keysort(ScoredMoves, SortedMoves),
-    reverse(SortedMoves, [_HighestScore-BestMove | _]). % Extract the move with the highest score.
+%select_best_move(ScoredMoves, BestMove) :-
+%    keysort(ScoredMoves, SortedMoves),
+%    reverse(SortedMoves, [_HighestScore-BestMove | _]). % Extract the move with the highest score.
 
 % value(+GameState, -Score)
 % Define a heuristic to evaluate the game state.
