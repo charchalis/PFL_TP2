@@ -375,11 +375,7 @@ valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
     closest_stack(Board, Origin, (StackX, StackY)),
     distance(Origin, (StackX, StackY), OriginDistance),
     distance(Destination, (StackX, StackY), DestinationDistance),
-    (DestinationDistance =< OriginDistance,
-        %write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'),
-        nl -> true ; 
-        %write('Invalid move: Does not bring piece closer to its closest stack.'), nl, 
-        fail),
+    DestinationDistance =< OriginDistance,
     !.  % Destination is empty -> valid if it brings the piece closer to its closest stack.
 
 valid_destination(_, _, _, (DestStack, DestOwner), CurrentPlayer, OriginStack) :-
