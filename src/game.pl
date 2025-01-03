@@ -660,7 +660,6 @@ next_move(false, GameState, Move):-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% GAME OVER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Define game_over/2 to check the condition and determine the winner
 game_over(game_state(Board, _, _, _, _, _), Winner) :-
     count_pieces(Board, player1, Player1Count),
     count_pieces(Board, player2, Player2Count),
@@ -669,7 +668,6 @@ game_over(game_state(Board, _, _, _, _, _), Winner) :-
 winner(Player1Count, 0, player1).
 winner(0, Player2Count, player2).
 
-% Helper predicate to count pieces for a player
 count_pieces(Board, Player, Count) :-
     findall(Stack, (
         nth1(_, Board, Row),
