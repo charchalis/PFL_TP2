@@ -769,10 +769,64 @@ max_in_list([X | Rest], Max) :-
 
 % value(+GameState, -Score)
 % Define a heuristic to evaluate the game state.
-value(game_state(_, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
-    % Example heuristic: Number of pieces captured
-    include(player_captured(CurrentPlayer), CapturedPieces, PlayerCaptured),
-    length(PlayerCaptured, Score).
+value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
+    findall(CaptureValue, (
+        nth1(_, Board, Row),
+        nth1(_, Row, (Stack, Owner)),
+        Owner = CurrentPlayer,
+        potential_capture(Board, (Stack, Owner), CaptureValue)
+    ), CaptureValues),
+    sum_list(CaptureValues, CaptureScore),
+
+    findall(StackValue, (
+        nth1(_, Board, Row),
+        nth1(_, Row, (Stack, Owner)),
+        Owner = CurrentPlayer,
+        potential_stack(Board, (Stack, Owner), StackValue)
+    ), StackValues),
+    sum_list(StackValues, StackScore),
+
+    findall(PositionalValue, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (Stack, Owner)),
+        Owner = CurrentPlayer,
+        positional_value(X, Y, PositionalValue)
+    ), PositionalValues),
+    sum_list(PositionalValues, PositionalScore),
+
+    % Weigh capturing more heavily than stacking and positional value
+    Score is CaptureScore * 2 + StackScore + PositionalScore.
+
+% Define positional value based on the piece's location
+positional_value(X, Y, Value) :-
+    % Example: Central positions are more valuable
+    Value is 10 - abs(4 - X) - abs(4 - Y).
+
+potential_capture(Board, (Stack, Owner), Value) :-
+    % Check adjacent cells for enemy stacks
+    findall(EnemyStack, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (EnemyStack, EnemyOwner)),
+        EnemyOwner \= Owner,
+        EnemyStack =< Stack
+    ), CapturableStacks),
+    sum_list(CapturableStacks, Value).
+
+potential_stack(Board, (Stack, Owner), Value) :-
+    % Check adjacent cells for friendly stacks
+    findall(FriendlyStack, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (FriendlyStack, FriendlyOwner)),
+        FriendlyOwner = Owner,
+        FriendlyStack >= Stack
+    ), StackableStacks),
+    sum_list(StackableStacks, Value).
+
+
+sum_list([], 0).
+sum_list([Head | Tail], Sum) :-
+    sum_list(Tail, TailSum),
+    Sum is Head + TailSum.
 
 % Check if a captured piece belongs to the player
 player_captured(Player, (_, Player)).
