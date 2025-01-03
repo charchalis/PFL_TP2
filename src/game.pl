@@ -499,22 +499,26 @@ prompt_for_move(GameState, Move) :-
     write('You can type "exit" to return to main menu.'), nl,
     write('Start position (X1, Y1):'), nl,
     read(StartPos),
-    (StartPos == moves ->
-        valid_moves(GameState, ListOfMoves),
-        write('Valid moves:'), nl,
-        print_valid_moves(ListOfMoves),
-        prompt_for_move(GameState, Move);
-    StartPos == exit ->
-        GameState = game_state(_, _, _, _, GameType, Difficulty),nl,nl,
-        % Reuse configuration to return to the menu
-        main_menu(game_config(GameType, Difficulty, small));
-    
+    handle_start_pos(StartPos, GameState, Move).
+
+handle_start_pos(moves, GameState, Move) :-
+    valid_moves(GameState, ListOfMoves),
+    write('Valid moves:'), nl,
+    print_valid_moves(ListOfMoves),
+    prompt_for_move(GameState, Move).
+
+handle_start_pos(exit, GameState, _) :-
+    GameState = game_state(_, _, _, _, GameType, Difficulty), nl, nl,
+    % Reuse configuration to return to the menu
+    main_menu(game_config(GameType, Difficulty, small)).
+
+handle_start_pos(StartPos, GameState, Move) :-
     write('End position (X2, Y2):'), nl,
     read(EndPos),
     Input = (StartPos, EndPos),
     (validate_input(GameState, Input) -> Move = Input;
      write('Invalid move. Please try again.'), nl,
-     prompt_for_move(GameState, Move))).
+     prompt_for_move(GameState, Move)).
 
 print_valid_moves([]).
 print_valid_moves([(Origin, Destination) | Rest]) :-
