@@ -150,7 +150,7 @@ read_option(Prompt, Min, Max, Option) :-
 
 initial_state(game_config(GameType, Difficulty, Size), GameState) :-
     % Create a board
-    (Size = small -> BoardSize = 6 ; BoardSize = 8),
+    (Size = small, BoardSize = 6 ; Size = big, BoardSize = 8),
     generate_board(BoardSize, Board),
     % Define the current player as player1
     CurrentPlayer = player1,
