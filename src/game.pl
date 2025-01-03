@@ -131,14 +131,19 @@ handle_size_menu(2, big).
 
 
 read_option(Prompt, Min, Max, Option) :-
-    write(Prompt),write(' ('),write(Min),write('-'),write(Max),write(') '),
+    write(Prompt), write(' ('), write(Min), write('-'), write(Max), write(') '),
     read(Input),
-    (integer(Input), Input >= Min, Input =< Max ->
-        Option = Input
-    ;
-        write('Invalid option. Please try again.'), nl,
-        read_option(Prompt, Min, Max, Option)
-    ).
+    validate_option(Input, Min, Max, Option).
+
+validate_option(Input, Min, Max, Option) :-
+    integer(Input),
+    Input >= Min,
+    Input =< Max,
+    Option = Input.
+
+validate_option(_, Min, Max, Option) :-
+    write('Invalid option. Please try again.'), nl,
+    read_option('Choose an option', Min, Max, Option).
 
 
 
