@@ -27,27 +27,39 @@ r :-
 
 
 
-game_cycle(GameState):-
-    GameState = game_state(_,CurrentPlayer,_,_,GameType,_),
-    display_game(GameState),
-    game_over(GameState, Winner),
-    !,
-    format("Game over! Winner is: ~w~n", [Winner]), nl, nl.
-game_cycle(GameState) :-
+
+/**
+ * game_cycle/1
+ * 
+ * Manages the game loop by displaying the game state, checking for game over conditions,
+ * and processing the next move based on the current player and game type.
+ * 
+ * @param GameState The current state of the game
+ * 
+ * The function displays the game state, checks if the game is over, and if not, determines
+ * the next move and applies it, continuing the game loop with the new game state.
+ */
+game_cycle(GameState):- 
     GameState = game_state(_, CurrentPlayer, _, _, GameType, _),
-    species_identificator(CurrentPlayer, GameType, IsHuman),
-    next_move(IsHuman, GameState, Move),
-    move(GameState, Move, NewGameState),
-    print_move(NewGameState, Move),
-    game_cycle(NewGameState).
+    display_game(GameState), % Display the current game state
+    game_over(GameState, Winner), % Check if the game is over
+    !, % Cut to prevent backtracking
+    format("Game over! Winner is: ~w~n", [Winner]), nl, nl. % Print the winner
+
+
+game_cycle(GameState) :- 
+    GameState = game_state(_, CurrentPlayer, _, _, GameType, _), % Get the current player and the game type
+    species_identificator(CurrentPlayer, GameType, IsHuman), % Check if the current player is human
+    next_move(IsHuman, GameState, Move), % Get the next move
+    move(GameState, Move, NewGameState), % Apply the move
+    print_move(NewGameState, Move), % Print the move
+    game_cycle(NewGameState). % Continue the game loop with the new game state
 
 
 print_move(GameState, ((OriginX, OriginY), (DestinationX, DestinationY))) :-
-    % Extract the current player from the game state
-    GameState = game_state(_, CurrentPlayer, _, _, _, _),
-    switch_player(CurrentPlayer, NextPlayer),
-    % Print the move
-    format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl.
+    GameState = game_state(_, CurrentPlayer, _, _, _, _), % Get the current player
+    switch_player(CurrentPlayer, NextPlayer), % Get the next player
+    format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl. % Print the move
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -142,7 +154,17 @@ validate_option(_, Min, Max, Option) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INITIAL STATE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+/**
+ * initial_state/2
+ * 
+ * Initializes the game state based on the provided game configuration.
+ * 
+ * @param GameConfig The configuration of the game, including game type, difficulty, and board size.
+ * @param GameState The initial state of the game, including the board, current player, captured pieces, and pieces to play.
+ * 
+ * The function generates the board based on the specified size, sets the current player to player1,
+ * initializes captured pieces and pieces to play, and constructs the initial game state.
+ */
 initial_state(game_config(GameType, Difficulty, Size), GameState) :-
     % Create a board
     (Size = small, BoardSize = 6 ; Size = big, BoardSize = 8),
@@ -312,6 +334,16 @@ numlist_helper(Current, End, []) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MOVE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+/**
+ * move/3
+ *
+ * Updates the game state by applying a move.
+ *
+ * @param GameState The current state of the game, represented as a game_state/6 term.
+ * @param Move The move to be applied, represented in a format understood by apply_move/5.
+ * @param NewGameState The resulting state of the game after the move is applied, represented as a game_state/6 term.
+ *
+ */
 move(GameState, Move, NewGameState) :-
     
     GameState = game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty),
@@ -323,6 +355,16 @@ move(GameState, Move, NewGameState) :-
 
 
 
+% valid_move(+Board, +CurrentPlayer, +(Origin, Destination)) is semidet.
+%
+% Checks if a move is valid in the current gamestate.
+%
+% @param Board The current state of the game board, represented as a list of lists.
+% @param CurrentPlayer The player making the move.
+% @param Origin The coordinates of the piece to be moved, in the form (OriginX, OriginY).
+% @param Destination The coordinates of the destination cell, in the form (DestinationX, DestinationY).
+%
+% If all validations pass, the move is considered valid.
 valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     Origin = (OriginX, OriginY),
     Destination = (DestinationX, DestinationY),
@@ -349,11 +391,12 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     % If all validations pass, print confirmation
     % write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
 
-
+%Auxiliary function to check if the move is orthogonal and one square away
 orthogonal_one_square(OriginX, OriginY, DestinationX, DestinationY) :-
     (DestinationX = OriginX, abs(DestinationY - OriginY) =:= 1) ;  % Horizontal move
     (DestinationY = OriginY, abs(DestinationX - OriginX) =:= 1).  % Vertical move
 
+%Auxiliary function to find the closest stack to a given piece
 closest_stack(Board, (OriginX, OriginY), (StackX, StackY)) :-
     findall((X, Y), (nth1(X, Board, Row), nth1(Y, Row, (Stack, _)), Stack > 0, (X, Y) \= (OriginX, OriginY)), Stacks),
     maplist(distance((OriginX, OriginY)), Stacks, Distances),
@@ -361,11 +404,28 @@ closest_stack(Board, (OriginX, OriginY), (StackX, StackY)) :-
     nth1(Index, Distances, MinDistance),
     nth1(Index, Stacks, (StackX, StackY)).
 
+%Auxiliary function to calculate the Manhattan distance between two points
 distance((X1, Y1), (X2, Y2), Distance) :-
     Distance is abs(X1 - X2) + abs(Y1 - Y2).
 
 
-% valid_destination(+Board, +Origin, +Destination, +DestCell, +CurrentPlayer, +OriginStack)
+
+% valid_destination(+Board, +Origin, +Destination, +DestinationInfo, +CurrentPlayer, +OriginStack)
+%
+% Checks if a move from Origin to Destination is valid based on the game rules.
+%
+% @param Board The current state of the game board.
+% @param Origin The coordinates of the piece's current position.
+% @param Destination The coordinates of the piece's intended position.
+% @param DestinationInfo A tuple containing the stack size and owner at the Destination.
+% @param CurrentPlayer The player making the move.
+% @param OriginStack The size of the stack at the Origin.
+%
+% 1. If the Destination is empty (stack size 0), the move is valid if it brings the piece closer to its closest stack.
+% 2. If the Destination is not empty:
+%    - The move is valid if the Destination is a friendly stack with a higher or equal value than the Origin stack.
+%    - The move is valid if the Destination is an enemy stack with a lower or equal value than the Origin stack.
+%
 valid_destination(Board, Origin, Destination, (0, empty), CurrentPlayer, _) :-
     closest_stack(Board, Origin, (StackX, StackY)),
     distance(Origin, (StackX, StackY), OriginDistance),
@@ -390,6 +450,19 @@ valid_destination(_, _, _, _, _, _) :-
     %write('Invalid move: Destination square does not satisfy move rules.'), nl, 
     fail.
 
+/**
+ * forced_moves/3
+ * 
+ * Finds all the forced moves for the current player on the given board.
+ * 
+ * @param Board The current state of the game board, represented as a list of lists.
+ * @param CurrentPlayer The player whose forced moves are being determined.
+ * @param ForcedMoves A list of forced moves for the current player. Each move is represented as a pair of coordinates ((OriginX, OriginY), (DestinationX, DestinationY)).
+ * 
+ * Captures and stacks are forced moves. If they are available, no other moves can be played.
+ * 
+ * The resulting list of forced moves is sorted to remove duplicates and checked to make sure it's not empty.
+ */
 forced_moves(Board, CurrentPlayer, ForcedMoves) :-
     findall(((OriginX, OriginY), (DestinationX, DestinationY)), (
         nth1(OriginX, Board, Row),
@@ -421,6 +494,27 @@ switch_player(player2,player1).
 
 
 
+/**
+ * apply_move/5
+ * 
+ * Applies a move in the game by updating the board state.
+ * 
+ * @param Board The current state of the game board.
+ * @param ((OriginX, OriginY), (DestinationX, DestinationY)) The coordinates of the origin and destination cells.
+ * @param NewBoard The new state of the game board after the move is applied.
+ * @param CurrentPlayer The player making the move.
+ * @param NewCapturedPieces The pieces captured as a result of the move.
+ * 
+ * 1 - Extracts the origin cell from the board.
+ * 2 - Extracts the destination cell from the board.
+ * 3 - Handles the stacking logic for the destination cell:
+ *      - If the destination cell is empty, the origin stack is moved to the destination.
+ *      - If the destination cell is owned by the current player, the stacks are combined.
+ *      - If the destination cell is owned by the opponent, the destination stack is captured.
+ * 4 - Updates the destination row with the new destination cell.
+ * 5 - Removes the origin stack from the origin cell.
+ * 6 - Updates the origin row with the empty cell.
+ */
 apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, CurrentPlayer, NewCapturedPieces) :-
 
     %write('applying move'),nl,
