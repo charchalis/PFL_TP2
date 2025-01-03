@@ -573,11 +573,11 @@ next_move(false, GameState, Move):-
 game_over(game_state(Board, _, _, _, _, _), Winner) :-
     count_pieces(Board, player1, Player1Count),
     count_pieces(Board, player2, Player2Count),
-    (
-        Player1Count =:= 0 -> Winner = player2;
-        Player2Count =:= 0 -> Winner = player1;
-        Winner = none
-    ).
+    winner(Player1Count, Player2Count, Winner).
+
+winner(Player1Count, 0, player1).
+winner(0, Player2Count, player2).
+winner(Player1Count, Player2Count, none).
 
 % Helper predicate to count pieces for a player
 count_pieces(Board, Player, Count) :-
