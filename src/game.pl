@@ -59,7 +59,7 @@ game_cycle(GameState) :-
 
 print_move(GameState, ((OriginX, OriginY), (DestinationX, DestinationY))) :-
     GameState = game_state(_, CurrentPlayer, _, _, _, _), % Get the current player
-    switch_player(CurrentPlayer, NextPlayer), % Get the next player
+    switch_player(CurrentPlayer, NextPlayer),nl, % Get the next player
     format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl. % Print the move
 
 
@@ -270,9 +270,8 @@ format_column_header(Column) :-
 
 % Display each row (now aligned with columns)
 display_rows(_, 0).
-    %nl,nl,write('nop'),nl,nl.
 display_rows(Board, RowIndex) :-
-    %write(RowIndex), write(' yuh'),nl,
+    RowIndex > 0,  % Proceed only if RowIndex is positive.
     format('~2|~w | ', [RowIndex]),  % Write the row number with padding
     display_row(Board, RowIndex),
     nl,
