@@ -42,20 +42,10 @@ game_cycle(GameState) :-
     game_cycle(NewGameState).
 
 
-print_move(GameState, Move) :-
-    % Extract the difficulty and current player from the game state
-    GameState = game_state(_, CurrentPlayer, _, _, _, Difficulty),
-
-    % Determine the format of the move based on difficulty
-    (   Difficulty == 2
-    ->  % Difficulty 2 format
-        Move = ((OriginX, OriginY), DestinationX, DestinationY)
-    ;   % Other difficulties
-        Move = ((OriginX, OriginY), (DestinationX, DestinationY))
-    ),nl,
-
+print_move(GameState, ((OriginX, OriginY), (DestinationX, DestinationY))) :-
+    % Extract the current player from the game state
+    GameState = game_state(_, CurrentPlayer, _, _, _, _),
     switch_player(CurrentPlayer, NextPlayer),
-
     % Print the move
     format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl.
 
