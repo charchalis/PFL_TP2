@@ -514,9 +514,13 @@ handle_start_pos(StartPos, GameState, Move) :-
     write('End position (X2, Y2):'), nl,
     read(EndPos),
     Input = (StartPos, EndPos),
-    (validate_input(GameState, Input) -> Move = Input;
-     write('Invalid move. Please try again.'), nl,
-     prompt_for_move(GameState, Move)).
+    validate_input(GameState, Input),
+    !,
+    Move = Input.
+
+handle_start_pos(_, GameState, Move) :-
+    write('Invalid move. Please try again.'), nl,
+    prompt_for_move(GameState, Move).
 
 print_valid_moves([]).
 print_valid_moves([(Origin, Destination) | Rest]) :-
