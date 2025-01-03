@@ -42,6 +42,7 @@ r :-
 game_cycle(GameState):- 
     GameState = game_state(_, CurrentPlayer, _, _, GameType, _),
     display_game(GameState), % Display the current game state
+
     game_over(GameState, Winner), % Check if the game is over
     !, % Cut to prevent backtracking
     format("Game over! Winner is: ~w~n", [Winner]), nl, nl. % Print the winner
@@ -58,7 +59,7 @@ game_cycle(GameState) :-
 
 print_move(GameState, ((OriginX, OriginY), (DestinationX, DestinationY))) :-
     GameState = game_state(_, CurrentPlayer, _, _, _, _), % Get the current player
-    switch_player(CurrentPlayer, NextPlayer), % Get the next player
+    switch_player(CurrentPlayer, NextPlayer),nl, % Get the next player
     format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl. % Print the move
 
 
@@ -224,39 +225,40 @@ player_from_index(2, player2).
 
 % Display the game state
 display_game(game_state(Board, CurrentPlayer, _, _, _, _)) :-
-    nl,nl,
+    nl, nl,
     write('Current Player: '),
-    color_player(CurrentPlayer),nl, nl,
+    color_player(CurrentPlayer), nl, nl,
     display_board(Board),
     nl.
 
-color_player(player1):-
+color_player(player1) :-
     write_colored_text(blue, player1).
     
-color_player(player2):-
+color_player(player2) :-
     write_colored_text(red, player2).
 
-% Display the board with coordinates
+% Display the board with switched X and Y axes
 display_board(Board) :-
     length(Board, Size),
-    reverse(Board, ReversedBoard),  % Reversed the list to make it consistent with the display
-    write('  X'), nl,
-    display_rows(ReversedBoard, Size),
-    display_column_headers(Size).
+    write('  Y'), nl,
+    display_rows(Board, Size),
+    display_column_headers(Size),
+    %write('nah'),nl,
 
+    nl.
 
 % Display column headers (1, 2, 3, ...)
 display_column_headers(Size) :-
     Padding = '      ',
     write(Padding),
-    display_column_headers_limiter(Size),nl,
-    write(Padding),  
-    numlist(1, Size, Columns),  
+    display_column_headers_limiter(Size), nl,
+    write(Padding),
+    numlist(1, Size, Columns),
     maplist(format_column_header, Columns),
-    write(' Y'), nl.  
+    write(' X'), nl.
 
 display_column_headers_limiter(0).
-display_column_headers_limiter(Size):-
+display_column_headers_limiter(Size) :-
     Size > 0,
     write('---'),
     NewSize is Size - 1,
@@ -266,33 +268,44 @@ display_column_headers_limiter(Size):-
 format_column_header(Column) :-
     format(' ~w ', [Column]).
 
-
-% Display each row
-display_rows([], _).
-display_rows([Row | Rest], RowIndex) :-
+% Display each row (now aligned with columns)
+display_rows(_, 0).
+display_rows(Board, RowIndex) :-
+    RowIndex > 0,  % Proceed only if RowIndex is positive.
     format('~2|~w | ', [RowIndex]),  % Write the row number with padding
-    display_row(Row),
+    display_row(Board, RowIndex),
     nl,
     NewRowIndex is RowIndex - 1,
-    display_rows(Rest, NewRowIndex).
+    %write(NewRowIndex),write(' wuh'),nl,
+    display_rows(Board, NewRowIndex).
 
-% Display a single row
-display_row([]).
-display_row([(Stack, Player) | Rest]) :-
+% Display a single row by collecting column values
+display_row(Board, RowIndex) :-
+    maplist(nth1(RowIndex), Board, RowCells),
+    display_cells(RowCells).
+
+% Display all cells in a row
+display_cells([]).
+display_cells([(Stack, Player) | Rest]) :-
     write(' '),
     display_cell(Stack, Player),
     write(' '),
-    display_row(Rest).
+    display_cells(Rest).
+display_cells([0 | Rest]) :-  % For empty cells
+    write(' . '),
+    display_cells(Rest).
 
 % Display a single cell with color
 display_cell(Stack, player1) :- write_colored_text(blue, Stack).
 display_cell(Stack, player2) :- write_colored_text(red, Stack).
+
+% Display a single cell for empty
 display_cell(0, _) :- write('.').
 
-
+% Color-related predicates remain unchanged
 write_with_color(ColorCode, Text) :-
     format('\e[~wm~w\e[0m', [ColorCode, Text]).
-% Define color codes
+
 color_code(black, 30).
 color_code(red, 31).
 color_code(green, 32).
@@ -302,32 +315,21 @@ color_code(magenta, 35).
 color_code(cyan, 36).
 color_code(white, 37).
 
-% Example usage
 write_colored_text(Color, Text) :-
     color_code(Color, Code),
     write_with_color(Code, Text).
 
-
-
-%for fidsplay column header function
-% Equivalent of numlist(Start, End, List)
+% Helper predicates for numlist
 numlist(Start, End, List) :-
     Start =< End,
     numlist_helper(Start, End, List).
 
-% Helper predicate to recursively build the list
 numlist_helper(Current, End, [Current | Rest]) :-
     Current =< End,
     Next is Current + 1,
     numlist_helper(Next, End, Rest).
 numlist_helper(Current, End, []) :-
     Current > End.
-
-
-
-
-
-
 
 
 
@@ -661,8 +663,11 @@ next_move(false, GameState, Move):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% GAME OVER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 game_over(game_state(Board, _, _, _, _, _), Winner) :-
+    %write('hhere'),nl,
     count_pieces(Board, player1, Player1Count),
+    %write('hhere2'),nl,
     count_pieces(Board, player2, Player2Count),
+    %write('hhere3'),nl,
     winner(Player1Count, Player2Count, Winner).
 
 winner(Player1Count, 0, player1).
@@ -734,14 +739,6 @@ evaluate_moves(GameState, [Move | RestMoves], [Score-Move | RestScoredMoves]) :-
     format('(~w, ~w) -> (~w, ~w), value: ~w', [OriginX, OriginY, DestinationX, DestinationY, Score]), nl,
     evaluate_moves(GameState, RestMoves, RestScoredMoves).
 
-% Select the best move based on score (CHOOSES RANDOM BEST MOVE) (BUG)
-% select_best_move(ScoredMoves, BestMove) :-
-%     keysort(ScoredMoves, SortedMoves),
-%     reverse(SortedMoves, [_HighestScore-_ | _]), % Get the highest score
-%     findall(Move, member(HighestScore-Move, SortedMoves), BestMoves), % Collect all moves with the highest score
-%     nl,nl,write(BestMoves),nl,nl,
-%     random_member(BestMove, BestMoves). % Select a random move from the best moves
-
 
 select_best_move(ScoredMoves, BestMove) :-
     % Find the maximum score
@@ -769,11 +766,6 @@ max_in_list([X | Rest], Max) :-
     max_in_list(Rest, TailMax),
     Max is max(X, TailMax).
 
-
-% Select the best move based on score  (ALWAYS CHOOSES LAST BEST MOVE)
-%select_best_move(ScoredMoves, BestMove) :-
-%    keysort(ScoredMoves, SortedMoves),
-%    reverse(SortedMoves, [_HighestScore-BestMove | _]). % Extract the move with the highest score.
 
 % value(+GameState, -Score)
 % Define a heuristic to evaluate the game state.
