@@ -31,17 +31,15 @@ game_cycle(GameState):-
     GameState = game_state(_,CurrentPlayer,_,_,GameType,_),
     display_game(GameState),
     game_over(GameState, Winner),
-    (
-        Winner \= none ->  % If a winner is found, terminate
-        format("Game over! Winner is: ~w~n", [Winner]),nl,nl;
-        (
-            species_identificator(CurrentPlayer, GameType, IsHuman),
-            next_move(IsHuman, GameState, Move),
-            move(GameState, Move, NewGameState),
-            print_move(NewGameState, Move),
-            game_cycle(NewGameState)  % Otherwise, continue the game cycle
-        )
-    ).
+    !,
+    format("Game over! Winner is: ~w~n", [Winner]), nl, nl.
+game_cycle(GameState) :-
+    GameState = game_state(_, CurrentPlayer, _, _, GameType, _),
+    species_identificator(CurrentPlayer, GameType, IsHuman),
+    next_move(IsHuman, GameState, Move),
+    move(GameState, Move, NewGameState),
+    print_move(NewGameState, Move),
+    game_cycle(NewGameState).
 
 
 print_move(GameState, Move) :-
@@ -581,7 +579,6 @@ game_over(game_state(Board, _, _, _, _, _), Winner) :-
 
 winner(Player1Count, 0, player1).
 winner(0, Player2Count, player2).
-winner(Player1Count, Player2Count, none).
 
 % Helper predicate to count pieces for a player
 count_pieces(Board, Player, Count) :-
