@@ -383,13 +383,7 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationX, Board, DestRow), % Get the row at DestinationX
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
-    (   forced_moves(Board, CurrentPlayer, ForcedMoves),
-        %write('Forced moves: '), write(ForcedMoves), nl,
-        ForcedMoves \= []
-    ->  member((Origin, Destination), ForcedMoves)
-    ;   
-        valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack)
-    ).
+    valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack).
     % If all validations pass, print confirmation
     % write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
 
