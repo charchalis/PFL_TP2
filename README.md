@@ -70,13 +70,30 @@ Tasks:
                player1,
                computer_vs_computer,
                2)
+  ![imagem](https://github.com/user-attachments/assets/ba2bfc33-c5ee-4e9b-b244-5a178bdaf14d)
+
                
   Intermediate State:
 
     game_state([
-               [(0, empty), (0, empty), (1, player1), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (4, player2), (0, empty), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (0, empty), (1, player2), (0, empty), (4, player1), (0, empty)],
+               [(0, empty), (0, empty), (0, empty), (0, empty), (1, player2), (0, empty)],
+               [(0, empty), (0, empty), (2, player1), (0, empty), (0, empty), (0, empty)],
+               [(0, empty), (0, empty), (7, player1), (2, player2), (0, empty), (0, empty)],
+               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
+               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
+               [(0, empty), (0, empty), (2, player2), (2, player2), (0, empty), (0, empty)],
+               ],
+               player2,
+               computer_vs_computer,
+               2)
+  ![imagem](https://github.com/user-attachments/assets/ad2023bd-2f41-4b96-a2e6-507b4194b80a)
+
+  Final State:
+
+        game_state([
+               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
+               [(0, empty), (0, empty), (0, empty), (9, player1), (0, empty), (0, empty)],
+               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
                [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
                [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
                [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
@@ -84,20 +101,8 @@ Tasks:
                player2,
                computer_vs_computer,
                2)
+![imagem](https://github.com/user-attachments/assets/8604cc8e-cae1-4db3-bfed-074fba75b04b)
 
-  Final State:
-
-        game_state([
-               [(0, empty), (0, empty), (5, player2), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (0, empty), (1, player2), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
-               [(0, empty), (0, empty), (0, empty), (0, empty), (0, empty), (0, empty)],
-               ],
-               player1,
-               computer_vs_computer,
-               2)
         
 ### Move Representation
   A move is represented as a pair of pairs ((OriginX, OriginY), (DestinationX, DestinationY)). X and Y are the coordinates of the relevant squares on the board.
@@ -112,3 +117,11 @@ Tasks:
   During the development of this project we were able to implement successfully the game of Anaash while aplying and consolidating concepts learnt during this semester. Some improvements that could be made to this project are: 
   - A way to choose a custom table size.
   - An improved algorithm for a more powerfull bot.
+
+### Bibliography
+  [Official Game Website](http://www.marksteeregames.com/Anaash_rules.pdf)
+  
+  [ChatGPT](https://chatgpt.com)
+  
+  Relevant queries used with ChatGPT:  
+  - Having in consideration the rules of Anaash on the attached pdf what would be a good way to calculate the value of a boardstate? (Note: This querie also included a pdf with anaash's rules. The formula returned by this querie was not good enough and therefore only used as a base for our value algorithm)
