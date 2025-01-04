@@ -771,9 +771,9 @@ max_in_list([X | Rest], Max) :-
 % Define a heuristic to evaluate the game state.
 value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
 
-    write('Current: '), write(CurrentPlayer), nl,
+    %write('Current: '), write(CurrentPlayer), nl,
     switch_player(CurrentPlayer, RealCurrentPlayer),
-    write('Real Current: '), write(RealCurrentPlayer), nl,
+    %write('Real Current: '), write(RealCurrentPlayer), nl,
 
     % Calculate piece values for the current player
     findall(PieceValue, (
@@ -808,8 +808,8 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
 
 
     % Weigh capturing more heavily than stacking and positional value
-    format('Total Current Player Piece Value: ~w, Total Opponent Piece Value: ~w', [TotalCurrentPlayerPieceValue, TotalOpponentPieceValue]), nl,
-    format('Total Current Player Threat Penalty: ~w', [TotalCurrentPlayerThreatPenalty]), nl,
+    %format('Total Current Player Piece Value: ~w, Total Opponent Piece Value: ~w', [TotalCurrentPlayerPieceValue, TotalOpponentPieceValue]), nl,
+    %format('Total Current Player Threat Penalty: ~w', [TotalCurrentPlayerThreatPenalty]), nl,
     Score is (TotalCurrentPlayerPieceValue - TotalOpponentPieceValue) - TotalCurrentPlayerThreatPenalty.
 
 
