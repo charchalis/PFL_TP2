@@ -227,10 +227,10 @@ display_game(game_state(Board, CurrentPlayer, _, _)) :-
     nl.
 
 color_player(player1) :-
-    write_colored_text(blue, player1).
+    write_colored_text(red, player1).
     
 color_player(player2) :-
-    write_colored_text(red, player2).
+    write_colored_text(blue, player2).
 
 % Display the board with switched X and Y axes
 display_board(Board) :-
@@ -291,8 +291,8 @@ display_cells([0 | Rest]) :-  % For empty cells
     display_cells(Rest).
 
 % Display a single cell with color
-display_cell(Stack, player1) :- write_colored_text(blue, Stack).
-display_cell(Stack, player2) :- write_colored_text(red, Stack).
+display_cell(Stack, player1) :- write_colored_text(red, Stack).
+display_cell(Stack, player2) :- write_colored_text(blue, Stack).
 
 % Display a single cell for empty
 display_cell(0, _) :- write('.').
