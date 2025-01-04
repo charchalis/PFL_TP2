@@ -40,7 +40,7 @@ r :-
  * the next move and applies it, continuing the game loop with the new game state.
  */
 game_cycle(GameState):- 
-    GameState = game_state(_, CurrentPlayer, _, _, GameType, _),
+    GameState = game_state(_, CurrentPlayer, GameType, _),
     display_game(GameState), % Display the current game state
 
     game_over(GameState, Winner), % Check if the game is over
@@ -49,7 +49,7 @@ game_cycle(GameState):-
 
 
 game_cycle(GameState) :- 
-    GameState = game_state(_, CurrentPlayer, _, _, GameType, _), % Get the current player and the game type
+    GameState = game_state(_, CurrentPlayer, GameType, _), % Get the current player and the game type
     species_identificator(CurrentPlayer, GameType, IsHuman), % Check if the current player is human
     next_move(IsHuman, GameState, Move), % Get the next move
     move(GameState, Move, NewGameState), % Apply the move
@@ -58,7 +58,7 @@ game_cycle(GameState) :-
 
 
 print_move(GameState, ((OriginX, OriginY), (DestinationX, DestinationY))) :-
-    GameState = game_state(_, CurrentPlayer, _, _, _, _), % Get the current player
+    GameState = game_state(_, CurrentPlayer, _, _), % Get the current player
     switch_player(CurrentPlayer, NextPlayer),nl, % Get the next player
     format('~w played (~w, ~w) -> (~w, ~w)', [NextPlayer, OriginX, OriginY, DestinationX, DestinationY]), nl. % Print the move
 
@@ -172,15 +172,10 @@ initial_state(game_config(GameType, Difficulty, Size), GameState) :-
     generate_board(BoardSize, Board),
     % Define the current player as player1
     CurrentPlayer = player1,
-    % Initialize captured pieces and pieces yet to be played
-    CapturedPieces = [],
-    PiecesToPlay = [],
     % Construct the game state
     GameState = game_state(
         Board,
         CurrentPlayer,
-        CapturedPieces,
-        PiecesToPlay,
         GameType,
         Difficulty
     ).
@@ -224,7 +219,7 @@ player_from_index(2, player2).
 
 
 % Display the game state
-display_game(game_state(Board, CurrentPlayer, _, _, _, _)) :-
+display_game(game_state(Board, CurrentPlayer, _, _)) :-
     nl, nl,
     write('Current Player: '),
     color_player(CurrentPlayer), nl, nl,
@@ -341,18 +336,18 @@ numlist_helper(Current, End, []) :-
  *
  * Updates the game state by applying a move.
  *
- * @param GameState The current state of the game, represented as a game_state/6 term.
- * @param Move The move to be applied, represented in a format understood by apply_move/5.
- * @param NewGameState The resulting state of the game after the move is applied, represented as a game_state/6 term.
+ * @param GameState The current state of the game, represented as a game_state/4 term.
+ * @param Move The move to be applied, represented in a format understood by apply_move/4.
+ * @param NewGameState The resulting state of the game after the move is applied, represented as a game_state/4 term.
  *
  */
 move(GameState, Move, NewGameState) :-
     
-    GameState = game_state(Board, CurrentPlayer, CapturedPieces, PiecesToPlay, GameType, Difficulty),
-    NewGameState = game_state(NewBoard, NextPlayer, NewCapturedPieces, PiecesToPlay, GameType, Difficulty),
+    GameState = game_state(Board, CurrentPlayer, GameType, Difficulty),
+    NewGameState = game_state(NewBoard, NextPlayer, GameType, Difficulty),
 
     %valid_move(Board, CurrentPlayer, Move),
-    apply_move(Board, Move, NewBoard, CurrentPlayer, NewCapturedPieces),
+    apply_move(Board, Move, NewBoard, CurrentPlayer),
     switch_player(CurrentPlayer, NextPlayer).
 
 
@@ -499,7 +494,6 @@ switch_player(player2,player1).
  * @param ((OriginX, OriginY), (DestinationX, DestinationY)) The coordinates of the origin and destination cells.
  * @param NewBoard The new state of the game board after the move is applied.
  * @param CurrentPlayer The player making the move.
- * @param NewCapturedPieces The pieces captured as a result of the move.
  * 
  * 1 - Extracts the origin cell from the board.
  * 2 - Extracts the destination cell from the board.
@@ -511,7 +505,7 @@ switch_player(player2,player1).
  * 5 - Removes the origin stack from the origin cell.
  * 6 - Updates the origin row with the empty cell.
  */
-apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, CurrentPlayer, NewCapturedPieces) :-
+apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, CurrentPlayer) :-
 
     %write('applying move'),nl,
     %format('Origin: (~w, ~w), Destination: (~w, ~w)', [OriginX, OriginY, DestinationX, DestinationY]), nl,
@@ -531,17 +525,14 @@ apply_move(Board, ((OriginX, OriginY), (DestinationX, DestinationY)), NewBoard, 
     % Handle stacking logic for the destination
     (
         DestCell = (0,empty) ->
-            NewDestCell = (OriginStack, CurrentPlayer),
-            NewCapturedPieces = []
+            NewDestCell = (OriginStack, CurrentPlayer)
         ;
         DestCell = (DestStack, DestOwner),
         (
             DestOwner = CurrentPlayer ->
                 NewStack is OriginStack + DestStack,
-                NewDestCell = (NewStack, CurrentPlayer),
-                NewCapturedPieces = []
+                NewDestCell = (NewStack, CurrentPlayer)
             ;
-                NewCapturedPieces = [(DestStack, DestOwner)],
                 NewDestCell = (OriginStack, CurrentPlayer)
         )
     ),
@@ -587,7 +578,7 @@ handle_start_pos(moves, GameState, Move) :-
     prompt_for_move(GameState, Move).
 
 handle_start_pos(exit, GameState, _) :-
-    GameState = game_state(_, _, _, _, GameType, Difficulty), nl, nl,
+    GameState = game_state(_, _, GameType, Difficulty), nl, nl,
     % Reuse configuration to return to the menu
     main_menu(game_config(GameType, Difficulty, small)).
 
@@ -612,8 +603,6 @@ validate_input(GameState, Input):-
     GameState = game_state(
         Board,
         CurrentPlayer,
-        CapturedPieces,
-        PiecesToPlay,
         GameType,
         Difficulty
     ),
@@ -622,7 +611,7 @@ validate_input(GameState, Input):-
 
 % This computes the valid moves for every piece of the current player 
 valid_moves(GameState, ListOfMoves) :-
-    GameState = game_state(Board, CurrentPlayer, _, _, _, _),
+    GameState = game_state(Board, CurrentPlayer, _, _),
     findall((Origin, Destination), (
         member(Row, Board),
         nth1(X, Board, Row),
@@ -649,14 +638,14 @@ species_identificator(_,_,false).
 next_move(true, GameState, Move):-
     choose_move(0, GameState, Move).
 next_move(false, GameState, Move):-
-    GameState = game_state(_,_,_,_,_,Difficulty),
+    GameState = game_state(_,_,_,Difficulty),
     choose_move(Difficulty, GameState, Move).
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% GAME OVER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-game_over(game_state(Board, _, _, _, _, _), Winner) :-
+game_over(game_state(Board, _, _, _), Winner) :-
     %write('hhere'),nl,
     count_pieces(Board, player1, Player1Count),
     %write('hhere2'),nl,
@@ -695,7 +684,7 @@ choose_move(1, GameState, Move):-
 
 % choose_move(+Difficulty, +GameState, -Move)
 choose_move(2, GameState, BestMove) :- % Level 2: Greedy strategy
-    GameState = game_state(Board, CurrentPlayer, _, _, _, _),
+    GameState = game_state(Board, CurrentPlayer, _, _),
     findall(Move, valid_moves_for_player(Board, CurrentPlayer, Move), Moves),
     write('Evaluating moves:'),nl,
     evaluate_moves(GameState, Moves, ScoredMoves),
@@ -763,7 +752,7 @@ max_in_list([X | Rest], Max) :-
 
 % value(+GameState, -Score)
 % Define a heuristic to evaluate the game state.
-value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
+value(game_state(Board, CurrentPlayer, _, _), Score) :-
 
     %write('Current: '), write(CurrentPlayer), nl,
     switch_player(CurrentPlayer, RealCurrentPlayer),
