@@ -782,7 +782,7 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
         Owner = RealCurrentPlayer,
         positional_value(Board, X, Y, PositionalValue),
         stack_value(Stack, StackValue),
-        PieceValue is PositionalValue + StackValue
+        PieceValue is PositionalValue * StackValue % Changing this to + will break the calculations for some reason
     ), CurrentPlayerPieceValues),
     sum_list(CurrentPlayerPieceValues, TotalCurrentPlayerPieceValue),
 
@@ -793,7 +793,7 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
         Owner \= RealCurrentPlayer,
         positional_value(Board, X, Y, PositionalValue),
         stack_value(Stack, StackValue),
-        PieceValue is PositionalValue + StackValue
+        PieceValue is PositionalValue * StackValue % Changing this to + will break the calculations for some reason
     ), OpponentPieceValues),
     sum_list(OpponentPieceValues, TotalOpponentPieceValue),
 
@@ -814,7 +814,7 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
 
 
 stack_value(Stack, Value) :-
-    Value is Stack * (Stack//2 + 1). % Higher stacks have more value
+    Value is (Stack * (Stack//2 + 1)). % Higher stacks have more value
 
 % Define positional value based on the piece's location
 positional_value(Board, X, Y, Value) :-
@@ -862,4 +862,3 @@ player_captured(Player, (_, Player)).
 
 
 choose_move(GameState, Level, Move). % this CANNOT be deleted for black magic reasons
-
