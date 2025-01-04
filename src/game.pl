@@ -383,13 +383,7 @@ valid_move(Board, CurrentPlayer, (Origin, Destination)) :-
     nth1(DestinationX, Board, DestRow), % Get the row at DestinationX
     nth1(DestinationY, DestRow, DestCell), % Get the cell at DestinationY
 
-    (   forced_moves(Board, CurrentPlayer, ForcedMoves),
-        %write('Forced moves: '), write(ForcedMoves), nl,
-        ForcedMoves \= []
-    ->  member((Origin, Destination), ForcedMoves)
-    ;   
-        valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack)
-    ).
+    valid_destination(Board, Origin, Destination, DestCell, CurrentPlayer, OriginStack).
     % If all validations pass, print confirmation
     % write('Valid move from ('), write(Origin), write(') to ('), write(Destination),write(')'), nl.
 
@@ -769,15 +763,88 @@ max_in_list([X | Rest], Max) :-
 
 % value(+GameState, -Score)
 % Define a heuristic to evaluate the game state.
-value(game_state(_, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
-    % Example heuristic: Number of pieces captured
-    include(player_captured(CurrentPlayer), CapturedPieces, PlayerCaptured),
-    length(PlayerCaptured, Score).
+value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
+
+    %write('Current: '), write(CurrentPlayer), nl,
+    switch_player(CurrentPlayer, RealCurrentPlayer),
+    %write('Real Current: '), write(RealCurrentPlayer), nl,
+
+    % Calculate piece values for the current player
+    findall(PieceValue, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (Stack, Owner)),
+        Owner = RealCurrentPlayer,
+        positional_value(Board, X, Y, PositionalValue),
+        stack_value(Stack, StackValue),
+        PieceValue is PositionalValue * StackValue % Changing this to + will break the calculations for some reason
+    ), CurrentPlayerPieceValues),
+    sum_list(CurrentPlayerPieceValues, TotalCurrentPlayerPieceValue),
+
+    % Calculate piece values for the opponent
+    findall(PieceValue, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (Stack, Owner)),
+        Owner \= RealCurrentPlayer,
+        positional_value(Board, X, Y, PositionalValue),
+        stack_value(Stack, StackValue),
+        PieceValue is PositionalValue * StackValue % Changing this to + will break the calculations for some reason
+    ), OpponentPieceValues),
+    sum_list(OpponentPieceValues, TotalOpponentPieceValue),
+
+    % Calculate threat penalties for the current player
+    findall(ThreatPenalty, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (Stack, Owner)),
+        Owner = RealCurrentPlayer,
+        threat_value(Board, (Stack, Owner), X, Y, ThreatPenalty)
+    ), CurrentPlayerThreatPenalties),
+    sum_list(CurrentPlayerThreatPenalties, TotalCurrentPlayerThreatPenalty),
+
+
+    % Weigh capturing more heavily than stacking and positional value
+    %format('Total Current Player Piece Value: ~w, Total Opponent Piece Value: ~w', [TotalCurrentPlayerPieceValue, TotalOpponentPieceValue]), nl,
+    %format('Total Current Player Threat Penalty: ~w', [TotalCurrentPlayerThreatPenalty]), nl,
+    Score is (TotalCurrentPlayerPieceValue - TotalOpponentPieceValue) - TotalCurrentPlayerThreatPenalty.
+
+
+stack_value(Stack, Value) :-
+    Value is (Stack * (Stack//2 + 1)). % Higher stacks have more value
+
+% Define positional value based on the piece's location
+positional_value(Board, X, Y, Value) :-
+    length(Board, BoardSize), % Determine the number of rows (board height)
+    Center is BoardSize / 2, % Calculate the approximate center
+    BoardCenterX is ceiling(Center),
+    BoardCenterY is ceiling(Center),
+    Distance is abs(BoardCenterX - X) + abs(BoardCenterY - Y), % Manhattan distance
+    MaxDistance is BoardSize*2, % Maximum possible Manhattan distance
+    Value is ceiling((MaxDistance - Distance)/2). % Quadratic weighting
+
+% Checks if a piece is under threat
+threat_value(Board, (Stack, Owner), X, Y, ThreatValue) :-
+    findall(EnemyStack, (
+        adjacent(X, Y, AdjX, AdjY),          % Check adjacent cells
+        nth1(AdjX, Board, Row),
+        nth1(AdjY, Row, (EnemyStack, EnemyOwner)),
+        EnemyOwner \= Owner,                % Enemy piece
+        EnemyStack >= Stack                 % Threatening stack
+    ), ThreateningStacks),
+    length(ThreateningStacks, ThreatCount), % Count how many threats
+    ThreatValue is ThreatCount.        % Example penalty (adjustable)
+
+adjacent(X, Y, AdjX, AdjY) :-
+    (AdjX is X + 1, AdjY is Y);
+    (AdjX is X - 1, AdjY is Y);
+    (AdjX is X, AdjY is Y + 1);
+    (AdjX is X, AdjY is Y - 1).
+
+sum_list([], 0).
+sum_list([Head | Tail], Sum) :-
+    sum_list(Tail, TailSum),
+    Sum is Head + TailSum.
 
 % Check if a captured piece belongs to the player
 player_captured(Player, (_, Player)).
-
-
 
 
 
@@ -789,4 +856,3 @@ player_captured(Player, (_, Player)).
 
 
 choose_move(GameState, Level, Move). % this CANNOT be deleted for black magic reasons
-
