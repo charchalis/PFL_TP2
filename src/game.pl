@@ -770,10 +770,13 @@ max_in_list([X | Rest], Max) :-
 % value(+GameState, -Score)
 % Define a heuristic to evaluate the game state.
 value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
+
+    switch_player(CurrentPlayer, RealCurrentPlayer),
+
     findall(CaptureValue, (
         nth1(_, Board, Row),
         nth1(_, Row, (Stack, Owner)),
-        Owner = CurrentPlayer,
+        Owner = RealCurrentPlayer,
         potential_capture(Board, (Stack, Owner), CaptureValue)
     ), CaptureValues),
     sum_list(CaptureValues, CaptureScore),
@@ -781,7 +784,7 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
     findall(StackValue, (
         nth1(_, Board, Row),
         nth1(_, Row, (Stack, Owner)),
-        Owner = CurrentPlayer,
+        Owner = RealCurrentPlayer,
         potential_stack(Board, (Stack, Owner), StackValue)
     ), StackValues),
     sum_list(StackValues, StackScore),
@@ -789,18 +792,33 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
     findall(PositionalValue, (
         nth1(X, Board, Row),
         nth1(Y, Row, (Stack, Owner)),
-        Owner = CurrentPlayer,
-        positional_value(X, Y, PositionalValue)
+        Owner = RealCurrentPlayer,
+        positional_value(Board, X, Y, PositionalValue)
     ), PositionalValues),
     sum_list(PositionalValues, PositionalScore),
 
+    findall(ThreatPenalty, (
+        nth1(X, Board, Row),
+        nth1(Y, Row, (Stack, Owner)),
+        Owner = CurrentPlayer,
+        threat_value(Board, (Stack, Owner), X, Y, ThreatPenalty)
+    ), ThreatPenalties),
+    sum_list(ThreatPenalties, TotalThreatPenalty),
+
     % Weigh capturing more heavily than stacking and positional value
-    Score is CaptureScore * 2 + StackScore + PositionalScore.
+    format("~ncapture value: ~w ~nstack value: ~w ~npositional value: ~w ~nthreat penalty: ~w~n", [CaptureScore,StackScore,PositionalScore, TotalThreatPenalty]),
+    Score is CaptureScore + StackScore*2 + PositionalScore - TotalThreatPenalty*1.
 
 % Define positional value based on the piece's location
-positional_value(X, Y, Value) :-
-    % Example: Central positions are more valuable
-    Value is 10 - abs(4 - X) - abs(4 - Y).
+positional_value(Board, X, Y, Value) :-
+    length(Board, BoardSize), % Determine the number of rows (board height)
+    Center is BoardSize / 2, % Calculate the approximate center
+    BoardCenterX is ceiling(Center),
+    BoardCenterY is ceiling(Center),
+    Distance is abs(BoardCenterX - X) + abs(BoardCenterY - Y), % Manhattan distance
+    MaxDistance is BoardSize*2, % Maximum possible Manhattan distance
+    Value is ceiling((MaxDistance - Distance)/2). % Quadratic weighting
+    %format("(~w, ~w): ~w", [X, Y, Value]), nl.
 
 potential_capture(Board, (Stack, Owner), Value) :-
     % Check adjacent cells for enemy stacks
@@ -822,6 +840,23 @@ potential_stack(Board, (Stack, Owner), Value) :-
     ), StackableStacks),
     sum_list(StackableStacks, Value).
 
+% Checks if a piece at (X, Y) is under threat after a move
+threat_value(Board, (Stack, Owner), X, Y, ThreatValue) :-
+    findall(EnemyStack, (
+        adjacent(X, Y, AdjX, AdjY),          % Check adjacent cells
+        nth1(AdjX, Board, Row),
+        nth1(AdjY, Row, (EnemyStack, EnemyOwner)),
+        EnemyOwner \= Owner,                % Enemy piece
+        EnemyStack >= Stack                 % Threatening stack
+    ), ThreateningStacks),
+    length(ThreateningStacks, ThreatCount), % Count how many threats
+    ThreatValue is ThreatCount.        % Example penalty (adjustable)
+
+adjacent(X, Y, AdjX, AdjY) :-
+    (AdjX is X + 1, AdjY is Y);
+    (AdjX is X - 1, AdjY is Y);
+    (AdjX is X, AdjY is Y + 1);
+    (AdjX is X, AdjY is Y - 1).
 
 sum_list([], 0).
 sum_list([Head | Tail], Sum) :-
