@@ -16,8 +16,9 @@ Tasks:
 - Random moves bot
 
 ## Instalation
+
 **On linux:**
--
+- Insert instalation here
 
 **On Windows:**
 - Make sure the path to the SICStus bin folder is on the Path environmental variable
