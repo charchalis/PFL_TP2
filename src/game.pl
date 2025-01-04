@@ -782,7 +782,7 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
         Owner = RealCurrentPlayer,
         positional_value(Board, X, Y, PositionalValue),
         stack_value(Stack, StackValue),
-        PieceValue is PositionalValue * StackValue
+        PieceValue is PositionalValue + StackValue
     ), CurrentPlayerPieceValues),
     sum_list(CurrentPlayerPieceValues, TotalCurrentPlayerPieceValue),
 
@@ -793,7 +793,7 @@ value(game_state(Board, CurrentPlayer, CapturedPieces, _, _, _), Score) :-
         Owner \= RealCurrentPlayer,
         positional_value(Board, X, Y, PositionalValue),
         stack_value(Stack, StackValue),
-        PieceValue is PositionalValue * StackValue
+        PieceValue is PositionalValue + StackValue
     ), OpponentPieceValues),
     sum_list(OpponentPieceValues, TotalOpponentPieceValue),
 
