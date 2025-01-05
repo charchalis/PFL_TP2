@@ -44,6 +44,8 @@ Tasks:
   You win the game when you capture all enemy checkers.
 
   [Official game website](http://www.marksteeregames.com/Anaash_rules.pdf)
+## Considerations for game extentions
+  We did not add any extensions to the game. At one point we had implemented forced moves for captures and stacks, not allowing the player to make any other move if those were available, but we decided that this rule would take a bit of depth out of the game and decided against it, removing it for the final version.
 
 ## Game Logic
 ### Game Configuration Representation
