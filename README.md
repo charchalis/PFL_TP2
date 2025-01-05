@@ -15,7 +15,7 @@ Tasks:
 - Move
 - Random moves bot
 
-## Instalation
+## Instalation and execution
 
 **On linux:**
 - Insert instalation here
