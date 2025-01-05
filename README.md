@@ -8,7 +8,7 @@ Tasks:
 - Value and its aplication on the greedy bot
 - Game Over
 
-Miguel Wojciech de Vasconcelos Charchalis - up? - Contribution: 55%
+Miguel Wojciech de Vasconcelos Charchalis - up201506074 - Contribution: 55%
 Tasks:
 - Initial State
 - Display
@@ -18,7 +18,11 @@ Tasks:
 ## Instalation and execution
 
 **On linux:**
-- Insert instalation here
+- On the terminal, from the root of the aplication, run:
+
+  1- `sicstus -l src/game.pl`
+
+  2- `play.`
 
 **On Windows:**
 - Make sure the path to the SICStus bin folder is on the Path environmental variable
@@ -57,7 +61,8 @@ Tasks:
     - Game Type is inherited from the game configuration.
     - Difficulty is inherited from the game configuration.
 
-  Examples of game states:
+  #### Examples of game states:
+
   Initial State:
   
     game_state([
@@ -71,7 +76,7 @@ Tasks:
                player1,
                computer_vs_computer,
                2)
-  ![imagem](https://github.com/user-attachments/assets/ba2bfc33-c5ee-4e9b-b244-5a178bdaf14d)
+  ![imagem](images/board_initial_state.png)
 
                
   Intermediate State:
@@ -87,7 +92,7 @@ Tasks:
                player2,
                computer_vs_computer,
                2)
-  ![imagem](https://github.com/user-attachments/assets/ad2023bd-2f41-4b96-a2e6-507b4194b80a)
+  ![imagem](images/board_intermidiate_state.png)
 
   Final State:
 
@@ -102,7 +107,7 @@ Tasks:
                player2,
                computer_vs_computer,
                2)
-![imagem](https://github.com/user-attachments/assets/8604cc8e-cae1-4db3-bfed-074fba75b04b)
+![imagem](images/board_final_state.png)
 
         
 ### Move Representation
@@ -111,11 +116,16 @@ Tasks:
 
 ### User Interaction
   The user can interact with the main menu by typing the option numbers in the terminal, in this way the user is able to change the games type, the board size, and the bots dificulty. From the main menu it is also possible to start the game with the selected settings and to close the program. If the user picks an option that does not exist they are warned that the option is invalid and prompted to try again.
-  
+
+  ![imagem](images/menu.png)
+
   When it is the users turn to make a move they will be prompted to choose the piece they want to move in the form (X, Y) and then the destination square to that piece in the same (X, Y) form. The move is then validated acording to the rules of Anaash and if not valid the user is warned and prompted to make a valid move. If the user is having dificulties finding a valid move it is also possible to type "moves." when prompted to make a move to see a list of all the valid moves.
 
+  ![imagem](images/human_move.png)
+
+
 ### Conclusions
-  During the development of this project we were able to implement successfully the game of Anaash while aplying and consolidating concepts learnt during this semester. Some improvements that could be made to this project are: 
+  During the development of this project we were able to implement successfully the game of Anaash while applying and consolidating concepts learnt during this semester. Some improvements that could be made to this project are: 
   - A way to choose a custom table size.
   - An improved algorithm for a more powerfull bot.
 
@@ -125,4 +135,6 @@ Tasks:
   [ChatGPT](https://chatgpt.com)
   
   Relevant queries used with ChatGPT:  
-  - Having in consideration the rules of Anaash on the attached pdf what would be a good way to calculate the value of a boardstate? (Note: This querie also included a pdf with anaash's rules. The formula returned by this querie was not good enough and therefore only used as a base for our value algorithm)
+  - Having in consideration the rules of Anaash on the attached pdf what would be a good way to calculate the value of a boardstate? (Note: This querie also included a pdf with anaash's rules. The formula returned by this query was not good enough and therefore only used as a base for our value algorithm)
+
+  - How to write text with color in sicstus prolog? (The answer, once again, was not very good and therefore it required multiple queries to get an idea of how to implement colored text)
