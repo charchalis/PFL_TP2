@@ -61,7 +61,8 @@ Tasks:
     - Game Type is inherited from the game configuration.
     - Difficulty is inherited from the game configuration.
 
-  Examples of game states:
+  #### Examples of game states:
+
   Initial State:
   
     game_state([
