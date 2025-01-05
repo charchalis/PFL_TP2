@@ -16,6 +16,8 @@
 :- use_module('choose_move.pl'). % Implements logic for choosing the next move
 
 
+
+
 % play/0 - Entry point of the game
 % This is the entry point for starting the game. It is called to initialize and begin the game.
 % The predicate performs a series of steps to set up the initial state of the game, display the welcome message,
@@ -30,12 +32,14 @@ play :-
 
 
 
+
 % Displays the welcome message
 welcome :-
     nl,
     write('----------------------'), nl,
     write('| Welcome to Anaash! |'), nl,
     write('----------------------'), nl, nl.
+
 
 % Reloads the game
 reload :-

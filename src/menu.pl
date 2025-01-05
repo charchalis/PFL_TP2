@@ -2,7 +2,7 @@
 main_menu(GameConfig) :-
     GameConfig = game_config(GameType, Difficulty, Size), % Decompose the current game configuration
     % Display menu options with current settings
-    write('1. start ('), write(GameType), write(' | '), write(Difficulty), write(' | '), write(Size), write(' board )'), nl,
+    write('1. start ('), write(GameType), write(' | difficulty: '), write(Difficulty), write(' | '), write(Size), write(' board )'), nl,
     write('2. game type'), nl,
     write('3. difficulty'), nl,
     write('4. board size'), nl,
